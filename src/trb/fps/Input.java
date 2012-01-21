@@ -1,0 +1,47 @@
+package trb.fps;
+
+import trb.fps.predict.TimedInput;
+
+public class Input implements TimedInput {
+
+    public final long time;
+	public final int moveX;
+	public final int moveY;
+	public final int mouseDx;
+	public final int mouseDy;
+	public final boolean fire;
+
+    public Input() {
+        time = 0;
+        moveX = 0;
+        moveY = 0;
+        mouseDx = 0;
+        mouseDy = 0;
+        fire = false;
+    }
+
+	public Input(long time, int moveX, int moveY, int mouseDx, int mouseDy, boolean fire) {
+        this.time = time;
+        this.moveX = moveX;
+        this.moveY = moveY;
+        this.mouseDx = mouseDx;
+        this.mouseDy = mouseDy;
+        this.fire = fire;
+	}
+
+    public long getTime() {
+        return time;
+    }
+
+	@Override
+	public String toString() {
+		StringBuilder str = new StringBuilder();
+        str.append("time=").append(time);
+        str.append(" moveX=").append(moveX).append(" moveY=").append(moveY);
+		if (fire) {
+			str.append(" fire");
+		}
+		str.append(" dx=").append(mouseDx).append(" dy=").append(mouseDy);
+		return str.toString();
+	}
+}
