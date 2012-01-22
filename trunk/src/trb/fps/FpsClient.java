@@ -118,6 +118,7 @@ public class FpsClient {
         }
 		client.stop();
 		Display.destroy();
+		System.exit(0);
 	}
 
     private void initDisplay() {

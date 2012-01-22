@@ -29,7 +29,7 @@ public class Skybox {
 
     public Skybox() {
         try {
-            String[] images = {"rightav9.jpg", "leftav9.jpg", "topav9.jpg", "Topav9.jpg", "backav9.jpg", "frontav9.jpg"};
+            String[] images = {"rightav9.jpg", "leftav9.jpg", "topav9.jpg", "Topav9.jpg", "frontav9.jpg", "backav9.jpg"};
             ByteBuffer[][] pixels = new ByteBuffer[6][1];
             int w = 0;
             int h = 0;
