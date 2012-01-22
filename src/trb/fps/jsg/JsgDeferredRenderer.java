@@ -1,6 +1,7 @@
 package trb.fps.jsg;
 import javax.vecmath.Point2f;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import trb.fps.FpsRenderer;
 import trb.fps.FpsServer;
@@ -10,6 +11,7 @@ import trb.fps.jsg.shader.BasePass;
 import trb.fps.jsg.shader.FinalPass;
 import trb.fps.jsg.shader.LightManager;
 import trb.fps.jsg.shader.NormalMapping;
+import trb.fps.jsg.shader.SkyboxPass;
 import trb.fps.model.BulletData;
 import trb.fps.model.LevelData;
 import trb.fps.model.PlayerData;
@@ -26,12 +28,14 @@ import trb.jsg.TreeNode;
 import trb.jsg.Uniform;
 import trb.jsg.VertexData;
 import trb.jsg.View;
+import trb.jsg.enums.BlendDstFunc;
+import trb.jsg.enums.BlendSrcFunc;
+import trb.jsg.enums.SortOrder;
 import trb.jsg.enums.StencilAction;
 import trb.jsg.enums.StencilFunc;
 import trb.jsg.renderer.Renderer;
 import trb.jsg.util.Mat4;
 import trb.jsg.util.SGUtil;
-import trb.jsg.util.ShaderUtils;
 import trb.jsg.util.Vec3;
 
 public class JsgDeferredRenderer implements FpsRenderer {
@@ -49,6 +53,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
     private final Shader shader = new Shader(BasePass.baseProgram);
     private LightManager lightManager;
     private LevelGenerator levelGenerator;
+	private SkyboxPass skyboxPass;
 
     private final float far = 200f;
 
@@ -81,12 +86,12 @@ public class JsgDeferredRenderer implements FpsRenderer {
         basePass.getRootNode().addChild(replaceableNode);
 
         playerModels = createModels(LevelData.MAX_PLAYERS, basePass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 1, 0), new Vec3(0.5f, 2f, 0.08f)));
-        bulletModels = createModels(LevelData.MAX_BULLETS, basePass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
 
         // add renderpass to scene graph
         SceneGraph sceneGraph = new SceneGraph(basePass);
 
-        Texture lightTexture = SGUtil.createTexture(GL30.GL_RGBA16F, basew, baseh);
+		Texture lightTexture = SGUtil.createTexture(GL30.GL_RGBA16F, basew, baseh);
+		Texture mixedTexture = SGUtil.createTexture(GL11.GL_RGB, basew, baseh);
 
         Texture baseTexture = basePass.getRenderTarget().getColorAttachments()[0];
         Texture rgbaTexture = basePass.getRenderTarget().getColorAttachments()[1];
@@ -102,11 +107,34 @@ public class JsgDeferredRenderer implements FpsRenderer {
             }
         }
         lightManager.createHemisphereLight(new Vec3(0.35, 0.3, 0.4), new Vec3(0.1, 0.1, 0.05), new Vec3(1, 1, 0));
+
+		FinalPass.createFinalPass(lightTexture, rgbaTexture, mixedTexture, baseDepth, basew, baseh, view);
+		skyboxPass = new SkyboxPass(view, mixedTexture, baseDepth);
+
         sceneGraph.addRenderPass(lightManager.renderPass);
-        sceneGraph.addRenderPass(FinalPass.createFinalPass(lightTexture, rgbaTexture, basew, baseh));
+        sceneGraph.addRenderPass(FinalPass.mixPass);
+		sceneGraph.addRenderPass(FinalPass.transparentPass);
+		sceneGraph.addRenderPass(skyboxPass.renderPass);
+		sceneGraph.addRenderPass(FinalPass.toScreenPass);
 
         hud = new JsgHud();
         sceneGraph.addRenderPass(hud.renderPass);
+
+		bulletModels = createModels(LevelData.MAX_BULLETS, FinalPass.transparentPass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
+		for (TreeNode bulletModel : bulletModels) {
+			for (Shape bulletShape : bulletModel.getAllShapesInTree()) {
+				bulletShape.setSortOrder(SortOrder.BACK_TO_FRONT);
+				bulletShape.getState().setMaterial(null);
+				bulletShape.getState().setShader(null);
+				bulletShape.getState().setBlendEnabled(false);
+				bulletShape.getState().setBlendSrcFunc(BlendSrcFunc.ONE);
+				bulletShape.getState().setBlendDstFunc(BlendDstFunc.ONE);
+				bulletShape.getState().setDepthWriteEnabled(false);
+
+				System.out.println("AAAAAAAAAA change bullet");
+			}
+		}
+
 
         // create a renderer that renders the scenegraph
         renderer = new Renderer(sceneGraph);
@@ -166,6 +194,8 @@ public class JsgDeferredRenderer implements FpsRenderer {
         hud.render(level, localPlayerIdx);
 
         lightManager.update(view);
+
+		skyboxPass.update();
 
         // render the scene graph
         renderer.render();

@@ -1,10 +1,12 @@
 package trb.fps.jsg.shader;
 
 import javax.vecmath.Point2f;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.PixelFormat;
 import trb.fps.LevelGenerator;
@@ -63,6 +65,7 @@ public class PointLightTest {
         SceneGraph sceneGraph = new SceneGraph();
 
         Texture lightTexture = SGUtil.createTexture(GL30.GL_RGBA16F, basew, baseh);
+		Texture mixedTexture = SGUtil.createTexture(GL11.GL_RGB, basew, baseh);
 
         Texture baseTexture = basePass.getRenderTarget().getColorAttachments()[0];
         Texture rgbaTexture = basePass.getRenderTarget().getColorAttachments()[1];
@@ -79,20 +82,24 @@ public class PointLightTest {
         lightManager.createHemisphereLight(
                 new Vec3(0.5, 0.5, 0.2), new Vec3(0.1, 0.2, 0.1), new Vec3(0, 0.5, 1));
 
-        Bloom bloom = new Bloom(lightTexture);
+        Bloom bloom = new Bloom(mixedTexture);
 
-        SkyboxPass skyboxPass = new SkyboxPass(view, rgbaTexture, baseDepth);
+        SkyboxPass skyboxPass = new SkyboxPass(view, mixedTexture, baseDepth);
 
-        sceneGraph.addRenderPass(skyboxPass.renderPass);
-        sceneGraph.addRenderPass(basePass);
-        //sceneGraph.addRenderPass(lightManager.renderPass);
-//        sceneGraph.addRenderPass(bloom.renderPass);
-//            sceneGraph.addRenderPass(FinalPass.createFinalPass(
-//                    bloom.bloomTexture, rgbaTexture, windowWidth, windowHeight));
-//        sceneGraph.addRenderPass(FinalPass.createFinalPass(
-//                lightTexture, rgbaTexture, windowWidth, windowHeight));
-        sceneGraph.addRenderPass(FinalPass.createFinalPass(
-                rgbaTexture, null, windowWidth, windowHeight));
+		FinalPass.createFinalPass(lightTexture, rgbaTexture, mixedTexture, baseDepth, basew, baseh, view);
+		sceneGraph.addRenderPass(basePass);
+		sceneGraph.addRenderPass(lightManager.renderPass);
+		sceneGraph.addRenderPass(FinalPass.mixPass);
+//		sceneGraph.addRenderPass(FinalPass.transparentPass);
+		sceneGraph.addRenderPass(skyboxPass.renderPass);
+//		sceneGraph.addRenderPass(bloom.renderPass);
+		sceneGraph.addRenderPass(FinalPass.toScreenPass);
+
+//		SkyboxPass skyboxPass = new SkyboxPass(view, rgbaTexture, baseDepth);
+//		sceneGraph.addRenderPass(skyboxPass.renderPass);
+//		sceneGraph.addRenderPass(basePass);
+//		FinalPass.createFinalPass(rgbaTexture, null, rgbaTexture, baseDepth, basew, baseh, view);
+//		sceneGraph.addRenderPass(FinalPass.toScreenPass);
 
         // create a renderer that renders the scenegraph
         Renderer renderer = new Renderer(sceneGraph);
@@ -103,6 +110,12 @@ public class PointLightTest {
         float angle = 0f;
         long start = System.currentTimeMillis();
         while (!Display.isCloseRequested()) {
+			while (Keyboard.next()) {
+				if (Keyboard.getEventKey() == Keyboard.KEY_ESCAPE) {
+					System.exit(0);
+				}
+			}
+
             for (Shape shape : new LevelGenerator().get()) {
                 shape.setModelMatrix(new Mat4(shape.getModelMatrix()).translate(Math.random()*20, 0, 0));
             }
