@@ -5,6 +5,7 @@ import trb.fps.predict.TimedInput;
 public class Input implements TimedInput {
 
     public final long time;
+    public final long serverTime;
 	public final int moveX;
 	public final int moveY;
 	public final int mouseDx;
@@ -13,6 +14,7 @@ public class Input implements TimedInput {
 
     public Input() {
         time = 0;
+        serverTime = 0;
         moveX = 0;
         moveY = 0;
         mouseDx = 0;
@@ -20,8 +22,9 @@ public class Input implements TimedInput {
         fire = false;
     }
 
-	public Input(long time, int moveX, int moveY, int mouseDx, int mouseDy, boolean fire) {
+	public Input(long time, long serverTime, int moveX, int moveY, int mouseDx, int mouseDy, boolean fire) {
         this.time = time;
+        this.serverTime = serverTime;
         this.moveX = moveX;
         this.moveY = moveY;
         this.mouseDx = mouseDx;
@@ -37,6 +40,7 @@ public class Input implements TimedInput {
 	public String toString() {
 		StringBuilder str = new StringBuilder();
         str.append("time=").append(time);
+        str.append(" serverTime=").append(serverTime);
         str.append(" moveX=").append(moveX).append(" moveY=").append(moveY);
 		if (fire) {
 			str.append(" fire");

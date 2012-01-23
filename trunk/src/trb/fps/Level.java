@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import trb.fps.model.LevelData;
 import trb.fps.model.PlayerData;
+import trb.fps.model.ServerData;
 import trb.fps.physics.KinematicCharacter;
 import trb.fps.physics.PhysicsLevel;
 import trb.fps.predict.DelayedInterpolatedState;
@@ -38,6 +39,8 @@ public class Level {
     public KinematicCharacter character;
     public PredictedState<PlayerData, PlayerUpdator> predictedState;
     public List<DelayedInterpolatedState<PlayerData>> interpolatedState = new ArrayList();
+    public DelayedInterpolatedState<ServerData> interpolatedServerState =
+            new DelayedInterpolatedState<ServerData>(new ServerData());
 
     public Level() {
         character = physicsLevel.addCharacter();

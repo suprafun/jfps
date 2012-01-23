@@ -35,7 +35,7 @@ public class FpsServer {
     private static final float PLAYER_RADIUS = 3f;
     private static final long BULLET_TIMEOUT_MILLIS = 5000;
     public static final BulletStats[] bulletStats = {
-        new BulletStats(10, 100f)
+        new BulletStats(10, 50f)
     };
     private static final Vec3 BULLET_SPAWN_OFFSET = new Vec3(0, 1.4f, 0);
 
@@ -210,7 +210,10 @@ public class FpsServer {
         
     }
 
-    private void fireBullet(PlayerData player) {
+    /**
+     * @param fireServerTime server time as seen by shooter
+     */
+    private void fireBullet(PlayerData player, long fireServerTime) {
         System.out.println("fireBullet " + player.getIndex());
         for (BulletData bullet : level.bullets) {
             if (!bullet.alive) {
@@ -218,7 +221,8 @@ public class FpsServer {
                 bullet.shooterPlayerIdx = player.getIndex();
                 bullet.setStartPosition(player.getPosition().add_(BULLET_SPAWN_OFFSET));
                 bullet.setStartDirection(player.getTransform().transformAsVector(new Vec3(0, 0, -1)));
-                bullet.spawnTime = time;
+                System.out.println("fireBullet time diff: " + (fireServerTime - time));
+                bullet.spawnTime = fireServerTime;
                 return;
             }
         }
@@ -313,12 +317,16 @@ public class FpsServer {
                 }
                 level.players[playerIdx] = player;
 
+                long fireServerTime = -1;
                 boolean fire = false;
                 for (Input input : inputList) {
                     fire |= input.fire;
+                    if (input.fire) {
+                        fireServerTime = input.serverTime;
+                    }
                 }
                 if (fire) {
-                    fireBullet(player);
+                    fireBullet(player, fireServerTime);
                 }
             }
             inputList.clear();

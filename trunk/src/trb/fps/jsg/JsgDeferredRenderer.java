@@ -1,4 +1,5 @@
 package trb.fps.jsg;
+import java.util.Random;
 import javax.vecmath.Point2f;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -100,13 +101,16 @@ public class JsgDeferredRenderer implements FpsRenderer {
                 baseTexture, baseDepth, lightTexture, view, new Point2f(basew, baseh));
         lightManager.createPointLight(new Vec3(1, 0, 1), new Vec3(14, 5, 0), 10);
         lightManager.createPointLight(new Vec3(0, 1, 0), new Vec3(-14, 5, 0), 10);
+        Random rand = new Random(988231);
         for (float y = -100; y < 100; y += 20) {
             for (float x = -100; x < 100; x += 20) {
-                Vec3 pos = new Vec3(x, 5, y);
-                lightManager.createPointLight(new Vec3(1, 1, 1), pos, 15);
+                Vec3 pos = new Vec3(x, 3, y);
+                Vec3 color = new Vec3(rand.nextFloat(), rand.nextFloat(), rand.nextFloat())
+                        .scale_(0.8f).add(0.2, 0.2, 0.2);
+                lightManager.createPointLight(color, pos, 15);
             }
         }
-        lightManager.createHemisphereLight(new Vec3(0.35, 0.3, 0.4), new Vec3(0.1, 0.1, 0.05), new Vec3(1, 1, 0));
+        lightManager.createHemisphereLight(new Vec3(0.35, 0.3, 0.4), new Vec3(), new Vec3(-1, 0.25f, 0));
 
 		FinalPass.createFinalPass(lightTexture, rgbaTexture, mixedTexture, baseDepth, basew, baseh, view);
 		skyboxPass = new SkyboxPass(view, mixedTexture, baseDepth);
@@ -189,7 +193,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
         }
 
         renderPlayers(l, localPlayerIdx);
-        renderBullets(level);
+        renderBullets(l);
 
         hud.render(level, localPlayerIdx);
 
@@ -226,14 +230,16 @@ public class JsgDeferredRenderer implements FpsRenderer {
         }
     }
 
-    private void renderBullets(LevelData level) {
-        for (int i = 0; i < level.bullets.length; i++) {
-            BulletData bullet = level.bullets[i];
+    private void renderBullets(Level level) {
+        LevelData levelData = level.levelData;
+        for (int i = 0; i < levelData.bullets.length; i++) {
+            BulletData bullet = levelData.bullets[i];
             for (Shape shape : bulletModels[i].getAllShapesInTree()) {
                 shape.setVisible(bullet.alive);
             }
             if (bullet.alive) {
-                Vec3 bulletPos = FpsServer.getPositionAtTime(bullet, level.serverTimeMillis);
+                long time = level.interpolatedServerState.getCurrentState().serverTime;
+                Vec3 bulletPos = FpsServer.getPositionAtTime(bullet, time);
                 bulletModels[i].setTransform(new Mat4().setTranslation_(bulletPos));
             }
         }
