@@ -18,6 +18,7 @@ import trb.fps.editor.LevelEditor;
 import trb.fps.jsg.JsgDeferredRenderer;
 import trb.fps.jsg.JsgRenderer;
 import trb.fps.model.PlayerData;
+import trb.fps.model.ServerData;
 import trb.jsg.View;
 
 public class FpsClient {
@@ -77,7 +78,7 @@ public class FpsClient {
 			while (isRunning()) {
                 long now = (System.nanoTime() - startTime) / 1000000;
 
-                Input input = createInput(now);
+                Input input = createInput(now, level.interpolatedServerState.getCurrentState().serverTime);
                 sendInput(input);
                 level.predictedState.update(new PlayerUpdator(input, level.character, level.physicsLevel));
                 LevelData levelData = null;
@@ -93,6 +94,8 @@ public class FpsClient {
                     PlayerData fromServer = (levelData == null ? null : levelData.players[i]);
                     level.interpolatedState.get(i).update(now, fromServer);
                 }
+
+                level.interpolatedServerState.update(now, levelData == null ? null : new ServerData(levelData.serverTimeMillis));
 
 				renderer.render(level, playerIdx);
 
@@ -149,7 +152,7 @@ public class FpsClient {
     /**
      * Polls Keyboard and Mouse. Drains Mouse events.
      */
-    Input createInput(long time) {
+    Input createInput(long time, long serverTime) {
         boolean mouseButton1pressed = false;
         while (Mouse.next()) {
             if (Mouse.getEventButton() == 0 && Mouse.getEventButtonState()) {
@@ -188,6 +191,7 @@ public class FpsClient {
         moveY += Keyboard.isKeyDown(Keyboard.KEY_S) ? -1 : 0;
         return new Input(
                 time,
+                serverTime,
                 moveX,
                 moveY,
                 Mouse.getDX(),
