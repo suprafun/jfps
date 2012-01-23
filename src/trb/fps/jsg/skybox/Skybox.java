@@ -16,6 +16,7 @@ import trb.jsg.VertexData;
 import trb.jsg.View;
 import trb.jsg.enums.Format;
 import trb.jsg.enums.TextureType;
+import trb.jsg.enums.Wrap;
 import trb.jsg.renderer.Renderer;
 import trb.jsg.util.Mat4;
 import trb.jsg.util.TextureLoader;
@@ -40,6 +41,9 @@ public class Skybox {
                 pixels[i][0] = TextureLoader.getImageData(image);
             }
             texture = new Texture(TextureType.TEXTURE_CUBE_MAP, GL11.GL_RGBA, w, h, 0, Format.BGRA, pixels, false);
+            texture.setWrapS(Wrap.CLAMP_TO_EDGE);
+            texture.setWrapT(Wrap.CLAMP_TO_EDGE);
+            texture.setWrapR(Wrap.CLAMP_TO_EDGE);
 
             VertexData vertexData = VertexDataUtils.createBox(new Vec3(-1, -1, -1), new Vec3(1, 1, 1));
             vertexData.texCoords.set(new VertexData.TexCoordData(vertexData.coordinates, 3), 0);
