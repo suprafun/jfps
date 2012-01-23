@@ -1,7 +1,5 @@
 package trb.fps.jsg.shader;
 
-import javax.vecmath.Color4f;
-import org.lwjgl.opengl.GL11;
 import trb.fps.jsg.skybox.Skybox;
 import trb.jsg.DepthBuffer;
 import trb.jsg.RenderPass;
@@ -10,7 +8,6 @@ import trb.jsg.State.StencilFuncParams;
 import trb.jsg.State.StencilOpParams;
 import trb.jsg.Texture;
 import trb.jsg.View;
-import trb.jsg.enums.Face;
 import trb.jsg.enums.StencilAction;
 import trb.jsg.enums.StencilFunc;
 import trb.jsg.util.Mat4;
