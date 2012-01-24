@@ -2,11 +2,16 @@ package trb.fps.editor;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -18,6 +23,8 @@ import net.miginfocom.swing.MigLayout;
 import trb.fps.LevelGenerator;
 import trb.fps.property.PropertyListPanel;
 import trb.jsg.Shape;
+import trb.xml.XMLElement;
+import trb.xml.XMLElementWriter;
 
 public class LevelEditor {
 
@@ -26,6 +33,7 @@ public class LevelEditor {
     public List<BoxProps> boxes = new ArrayList();
     private final JPanel propertyPanel = new JPanel(new BorderLayout());
     private final JList list;
+    private File currentFile = null;
 
     public LevelEditor(final LevelGenerator levelGenerator) {
         boxes.add(BoxProps.fromMinMax("ground", -400, -1, -400, 400, 0, 400));
@@ -78,6 +86,7 @@ public class LevelEditor {
             }
         }), "growx");
 
+        frame.setJMenuBar(new EditorMenu(this).menuBar);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(250, 600);
         frame.add(panel);
@@ -119,6 +128,64 @@ public class LevelEditor {
                 propertyPanel.repaint();
             }
         });
+    }
+
+    void newLevel() {
+    }
+
+    void open() {
+        Preferences prefs = Preferences.userNodeForPackage(getClass());
+        JFileChooser chooser = new JFileChooser(prefs.get("chooserPath", "."));
+        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(frame)) {
+            File file = chooser.getSelectedFile();
+            prefs.put("chooserPath", file.getParent());
+            open(file);
+        }
+    }
+
+    void save() {
+        save(currentFile);
+    }
+
+    void saveAs() {
+        Preferences prefs = Preferences.userNodeForPackage(getClass());
+        JFileChooser chooser = new JFileChooser(prefs.get("chooserPath", "."));
+        if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(frame)) {
+            File file = chooser.getSelectedFile();
+            prefs.put("chooserPath", file.getParent());
+            save(file);
+        }
+    }
+
+    void open(File file) {
+        if (file == null) {
+            return;
+        }
+
+        try {
+            XMLElement level = new XMLElement(new FileInputStream(file)).getFirstChildWithName("level");
+            System.out.println(level);
+            boxes = new ArrayList(IO.readLevel(level.getFirstChildWithName("boxes")));
+            updateBoxList(null);
+            currentFile = file;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    void save(File file) {
+        if (file == null) {
+            return;
+        }
+
+        XMLElement level = XMLElement.createFromName("level");
+        IO.writeLevel(level.createChild("boxes"), boxes);
+        try {
+            XMLElementWriter.write(new PrintWriter(file), level);
+            currentFile = file;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
