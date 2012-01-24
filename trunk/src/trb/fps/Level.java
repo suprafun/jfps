@@ -21,6 +21,7 @@ package trb.fps;
 
 import java.util.ArrayList;
 import java.util.List;
+import trb.fps.editor.EditorNavigation;
 import trb.fps.model.LevelData;
 import trb.fps.model.PlayerData;
 import trb.fps.model.ServerData;
@@ -41,6 +42,7 @@ public class Level {
     public List<DelayedInterpolatedState<PlayerData>> interpolatedState = new ArrayList();
     public DelayedInterpolatedState<ServerData> interpolatedServerState =
             new DelayedInterpolatedState<ServerData>(new ServerData());
+    public EditorNavigation editorNavigation = new EditorNavigation();
 
     public Level() {
         character = physicsLevel.addCharacter();

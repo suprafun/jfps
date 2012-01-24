@@ -183,7 +183,9 @@ public class JsgDeferredRenderer implements FpsRenderer {
 
         float timeSec = (System.currentTimeMillis() - startTimeMillis) / 1000f;
 
-        if (localPlayerIdx >= 0 && !useTopView) {
+        if (l.editorNavigation.enabled.get()) {
+            view.setCameraMatrix(l.editorNavigation.viewTransform);
+        } else if(localPlayerIdx >= 0 && !useTopView) {
             //PlayerData player = level.players[localPlayerIdx];
             PlayerData player = l.predictedState.getCurrentState();
             view.setCameraMatrix(player.getViewTransform());

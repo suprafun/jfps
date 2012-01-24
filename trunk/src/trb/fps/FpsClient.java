@@ -78,8 +78,17 @@ public class FpsClient {
 			while (isRunning()) {
                 long now = (System.nanoTime() - startTime) / 1000000;
 
-                Input input = createInput(now, level.interpolatedServerState.getCurrentState().serverTime);
+                int dx = Mouse.isInsideWindow() ? Mouse.getDX() : 0;
+                int dy = Mouse.isInsideWindow() ? Mouse.getDY() : 0;
+
+                Input input = createInput(now, level.interpolatedServerState.getCurrentState().serverTime
+                        , dx, dy);
                 sendInput(input);
+
+                if (level.editorNavigation.enabled.get()) {
+                    level.editorNavigation.handleMouseEvent(dx, dy);
+                }
+
                 level.predictedState.update(new PlayerUpdator(input, level.character, level.physicsLevel));
                 LevelData levelData = null;
                 if (!in.isEmpty()) {
@@ -152,25 +161,13 @@ public class FpsClient {
     /**
      * Polls Keyboard and Mouse. Drains Mouse events.
      */
-    Input createInput(long time, long serverTime) {
-        boolean mouseButton1pressed = false;
-        while (Mouse.next()) {
-            if (Mouse.getEventButton() == 0 && Mouse.getEventButtonState()) {
-                mouseButton1pressed = true;
-                if (level.levelData.players[playerIdx].getHealth() <= 0) {
-                    client.sendTCP("respawn");
-                }
-            }
-        }
+    Input createInput(long time, long serverTime, int dx, int dy) {
         while (Keyboard.next()) {
             if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_RETURN) {
                 client.sendTCP("respawn");
             }
             if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_HOME) {
-                if (renderer instanceof JsgRenderer) {
-                    JsgRenderer jsgRenderer = (JsgRenderer) renderer;
-                    jsgRenderer.useTopView = !jsgRenderer.useTopView;
-                }
+                level.editorNavigation.enabled.set(!level.editorNavigation.enabled.get());
             }
             if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_V) {
                 View.useFrustumCulling = !View.useFrustumCulling;
@@ -183,10 +180,19 @@ public class FpsClient {
                 renderer = jsgRenderer;
             }
         }
+        boolean mouseButton1pressed = false;
+        while (Mouse.next()) {
+            if (Mouse.getEventButton() == 0 && Mouse.getEventButtonState()) {
+                mouseButton1pressed = true;
+                if (level.levelData.players[playerIdx].getHealth() <= 0) {
+                    client.sendTCP("respawn");
+                }
+            }
+        }
         int moveX = 0;
+        int moveY = 0;
         moveX += Keyboard.isKeyDown(Keyboard.KEY_A) ? -1 : 0;
         moveX += Keyboard.isKeyDown(Keyboard.KEY_D) ? 1 : 0;
-        int moveY = 0;
         moveY += Keyboard.isKeyDown(Keyboard.KEY_W) ? 1 : 0;
         moveY += Keyboard.isKeyDown(Keyboard.KEY_S) ? -1 : 0;
         return new Input(
@@ -194,8 +200,8 @@ public class FpsClient {
                 serverTime,
                 moveX,
                 moveY,
-                Mouse.getDX(),
-                Mouse.getDY(),
+                Mouse.isButtonDown(1) ? dx : 0,
+                Mouse.isButtonDown(1) ? dy : 0,
                 mouseButton1pressed);
     }
 }
