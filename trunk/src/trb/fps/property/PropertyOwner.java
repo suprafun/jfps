@@ -2,10 +2,11 @@ package trb.fps.property;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class PropertyOwner {
+public class PropertyOwner implements Iterable<Property> {
 
     public List<Property> properties = new CopyOnWriteArrayList();
     public ListenerList<PropertyChangeListener> listeners = new ListenerList();
@@ -26,7 +27,20 @@ public class PropertyOwner {
         return p;
     }
 
+    public Property getProperty(String name) {
+        for (Property p : properties) {
+            if (p.getName().equals(name)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
     protected void propertyChanged(PropertyChangeEvent e) {
         
+    }
+
+    public Iterator<Property> iterator() {
+        return properties.iterator();
     }
 }

@@ -50,11 +50,6 @@ public class BoxProps extends PropertyOwner {
         }
     }
 
-    @Override
-    public String toString() {
-        return name.get();
-    }
-
     public Shape getShape() {
         if (shape == null) {
             shape = LevelGenerator.createShape(createVertexData(), false);
@@ -64,5 +59,10 @@ public class BoxProps extends PropertyOwner {
 
     private VertexData createVertexData() {
         return JsgBox.createFromPosSize(x.get(), y.get(), z.get(), width.get(), height.get(), depth.get());
+    }
+
+    @Override
+    public String toString() {
+        return name.get();
     }
 }
