@@ -33,11 +33,15 @@ public class LevelEditor {
     public List<BoxProps> boxes = new ArrayList();
     private final JPanel propertyPanel = new JPanel(new BorderLayout());
     private final JList list;
-    private File currentFile = null;
 
     public LevelEditor(final LevelGenerator levelGenerator) {
-        boxes.add(BoxProps.fromMinMax("ground", -400, -1, -400, 400, 0, 400));
-        boxes.add(BoxProps.fromMinMax("pole", -0.1f, 0, -0.1f, 0.1f, 100, 0.1f));
+        File currentFile = getCurrentFile();
+        if (currentFile != null && currentFile.exists()) {
+            open(currentFile);
+        } else {
+            boxes.add(BoxProps.fromMinMax("ground", -400, -1, -400, 400, 0, 400));
+            boxes.add(BoxProps.fromMinMax("pole", -0.1f, 0, -0.1f, 0.1f, 100, 0.1f));
+        }
 
         list = new JList(boxes.toArray());
         list.addListSelectionListener(new ListSelectionListener() {
@@ -134,26 +138,20 @@ public class LevelEditor {
     }
 
     void open() {
-        Preferences prefs = Preferences.userNodeForPackage(getClass());
-        JFileChooser chooser = new JFileChooser(prefs.get("chooserPath", "."));
+        JFileChooser chooser = new JFileChooser(getCurrentFolder());
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(frame)) {
-            File file = chooser.getSelectedFile();
-            prefs.put("chooserPath", file.getParent());
-            open(file);
+            open(chooser.getSelectedFile());
         }
     }
 
     void save() {
-        save(currentFile);
+        save(getCurrentFile());
     }
 
     void saveAs() {
-        Preferences prefs = Preferences.userNodeForPackage(getClass());
-        JFileChooser chooser = new JFileChooser(prefs.get("chooserPath", "."));
+        JFileChooser chooser = new JFileChooser(getCurrentFolder());
         if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(frame)) {
-            File file = chooser.getSelectedFile();
-            prefs.put("chooserPath", file.getParent());
-            save(file);
+            save(chooser.getSelectedFile());
         }
     }
 
@@ -167,7 +165,7 @@ public class LevelEditor {
             System.out.println(level);
             boxes = new ArrayList(IO.readLevel(level.getFirstChildWithName("boxes")));
             updateBoxList(null);
-            currentFile = file;
+            setCurrentFile(file);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -182,10 +180,33 @@ public class LevelEditor {
         IO.writeLevel(level.createChild("boxes"), boxes);
         try {
             XMLElementWriter.write(new PrintWriter(file), level);
-            currentFile = file;
+            setCurrentFile(file);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void setCurrentFile(File file) {
+        Preferences prefs = Preferences.userNodeForPackage(getClass());
+        prefs.put("currentFile", file.getPath());
+    }
+
+    public File getCurrentFile() {
+        Preferences prefs = Preferences.userNodeForPackage(getClass());
+        File file = new File(prefs.get("currentFile", "."));
+        if (file.isFile()) {
+            return file;
+        }
+        return null;
+    }
+
+    public File getCurrentFolder() {
+        Preferences prefs = Preferences.userNodeForPackage(getClass());
+        File file = new File(prefs.get("currentFile", "."));
+        if (file.isFile()) {
+            return file.getParentFile();
+        }
+        return file;
     }
 
     public static void main(String[] args) {

@@ -20,6 +20,10 @@ public class PropertyOwner implements Iterable<Property> {
         }
     };
 
+    public Property add(String name, Object initialValue) {
+        return add(name, initialValue.getClass(), initialValue);
+    }
+
     public Property add(String name, Class type, Object initialValue) {
         Property p = new Property(name, type, initialValue);
         p.listeners.addListener(listener);
