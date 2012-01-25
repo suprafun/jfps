@@ -16,6 +16,7 @@ import trb.jsg.RenderPass;
 import trb.jsg.SceneGraph;
 import trb.jsg.Shape;
 import trb.jsg.Texture;
+import trb.jsg.TreeNode;
 import trb.jsg.Uniform;
 import trb.jsg.View;
 import trb.jsg.renderer.Renderer;
@@ -55,10 +56,11 @@ public class PointLightTest {
         NormalMapping.shader.putUniform(new Uniform("farClipDistance", Uniform.Type.FLOAT, far));
 
         // add shape to the renderpass tree
-        for (Shape shape : new LevelGenerator().get()) {
-            //shape.getState().setShader(shader);
-            NormalMapping.apply(shape);
-            basePass.getRootNode().addShape(shape);
+        for (TreeNode node : new LevelGenerator().get()) {
+            for (Shape shape : node.getAllShapesInTree()) {
+                NormalMapping.apply(shape);
+            }
+            basePass.getRootNode().addChild(node);
         }
 
         // add renderpass to scene graph
@@ -116,8 +118,8 @@ public class PointLightTest {
 				}
 			}
 
-            for (Shape shape : new LevelGenerator().get()) {
-                shape.setModelMatrix(new Mat4(shape.getModelMatrix()).translate(Math.random()*20, 0, 0));
+            for (TreeNode node : new LevelGenerator().get()) {
+                node.setTransform(new Mat4(node.getTransform()).translate(Math.random() * 20, 0, 0));
             }
 
             float timeAngle = (System.currentTimeMillis() - start) / 20f;

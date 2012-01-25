@@ -13,6 +13,7 @@ import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSo
 import javax.vecmath.Vector3f;
 import trb.fps.LevelGenerator;
 import trb.jsg.Shape;
+import trb.jsg.TreeNode;
 import trb.jsg.util.Vec3;
 
 /**
@@ -47,12 +48,13 @@ public class PhysicsLevel {
         dynamicsWorld.setGravity(new Vector3f(0f, -10f, 0f));
 
         // add shape to the renderpass tree
-        for (Shape shape : new LevelGenerator().get()) {
-            addAsConvexHull(shape, false);
+        for (TreeNode node : new LevelGenerator().get()) {
+            addAsConvexHull(node, false);
         }
     }
 
-    public ConvexHull addAsConvexHull(Shape shape, boolean isDynamic) {
+    public ConvexHull addAsConvexHull(TreeNode node, boolean isDynamic) {
+        Shape shape = node.getShape(0);
         ConvexHull convexHull = new ConvexHull(shape, isDynamic);
         dynamicsWorld.addRigidBody(convexHull.getRigidBody());
         return convexHull;

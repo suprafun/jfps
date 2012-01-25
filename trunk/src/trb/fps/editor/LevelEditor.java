@@ -22,28 +22,25 @@ import javax.swing.event.ListSelectionListener;
 import net.miginfocom.swing.MigLayout;
 import trb.fps.LevelGenerator;
 import trb.fps.property.PropertyListPanel;
-import trb.jsg.Shape;
+import trb.jsg.TreeNode;
 import trb.xml.XMLElement;
 import trb.xml.XMLElementWriter;
 
-public class LevelEditor {
+public final class LevelEditor {
 
     public JFrame frame = new JFrame("Level editor");
+    private final LevelGenerator levelGenerator;
 
-    public List<BoxProps> boxes = new ArrayList();
+    public EntityList entities = new EntityList();
     private final JPanel propertyPanel = new JPanel(new BorderLayout());
-    private final JList list;
+    private final JList list = new JList();
 
-    public LevelEditor(final LevelGenerator levelGenerator) {
+    public LevelEditor(LevelGenerator levelGenerator) {
+        this.levelGenerator = levelGenerator;
         File currentFile = getCurrentFile();
         if (currentFile != null && currentFile.exists()) {
             open(currentFile);
-        } else {
-            boxes.add(BoxProps.fromMinMax("ground", -400, -1, -400, 400, 0, 400));
-            boxes.add(BoxProps.fromMinMax("pole", -0.1f, 0, -0.1f, 0.1f, 100, 0.1f));
         }
-
-        list = new JList(boxes.toArray());
         list.addListSelectionListener(new ListSelectionListener() {
 
             public void valueChanged(ListSelectionEvent e) {
@@ -60,49 +57,49 @@ public class LevelEditor {
         panel.add(new JButton(new AbstractAction("+") {
 
             public void actionPerformed(ActionEvent e) {
-                System.out.println("add");
-                BoxProps selection = new BoxProps();
-                boxes.add(selection);
-                updateBoxList(selection);
+                addBox();
             }
         }), "growx");
         panel.add(new JButton(new AbstractAction("-") {
 
             public void actionPerformed(ActionEvent e) {
-                Object value = list.getSelectedValue();
-                if (value instanceof BoxProps) {
-                    boxes.remove((BoxProps) value);
-                    updateBoxList(null);
-                }
+                removeSelection();
             }
         }), "growx");
         panel.add(new JButton(new AbstractAction("Update") {
 
             public void actionPerformed(ActionEvent e) {
-                System.out.println("update");
-                if (levelGenerator != null) {
-                    ArrayList<Shape> shapes = new ArrayList();
-                    for (BoxProps boxProps : boxes) {
-                        shapes.add(boxProps.getShape());
-                    }
-                    levelGenerator.replace(shapes);
-                }
+                updateLevelGenerator();
             }
         }), "growx");
 
         frame.setJMenuBar(new EditorMenu(this).menuBar);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(250, 600);
+        frame.setSize(250, 1024);
         frame.add(panel);
         frame.setLocation(frame.getToolkit().getScreenSize().width-250, 0);
         frame.setVisible(true);
+    }
+
+    private void addBox() {
+        Entity selection = Entity.create(Meta.class, Transform.class, Box.class);
+        entities.add(selection);
+        updateBoxList(selection);
+    }
+
+    private void removeSelection() {
+        Object value = list.getSelectedValue();
+        if (value instanceof Entity) {
+            entities.remove((Entity) value);
+            updateBoxList(null);
+        }
     }
 
     private void updateBoxList(final Object selection) {
         SwingUtilities.invokeLater(new Runnable() {
 
             public void run() {
-                final List<BoxProps> modelData = new ArrayList(boxes);
+                final List<Entity> modelData = entities.getAll();
                 list.setModel(new AbstractListModel() {
 
                     public int getSize() {
@@ -117,6 +114,7 @@ public class LevelEditor {
                 updatePropertyList();
             }
         });
+        updateLevelGenerator();
     }
 
     private void updatePropertyList() {
@@ -124,15 +122,25 @@ public class LevelEditor {
             public void run() {
                 propertyPanel.removeAll();
                 Object value = list.getSelectedValue();
-                if (value instanceof BoxProps) {
-                    BoxProps boxProps = (BoxProps) value;
-                    propertyPanel.add(new PropertyListPanel(boxProps.properties).get(), BorderLayout.CENTER);
+                if (value instanceof Entity) {
+                    propertyPanel.add(new PropertyListPanel((Entity) value).get(), BorderLayout.CENTER);
                 }
                 propertyPanel.revalidate();
                 propertyPanel.repaint();
             }
         });
     }
+
+    private void updateLevelGenerator() {
+        if (levelGenerator != null) {
+            ArrayList<TreeNode> nodes = new ArrayList();
+            for (Box box : entities.getComponents(Box.class)) {
+                nodes.add(box.getNode());
+            }
+            levelGenerator.replace(nodes);
+        }
+    }
+
 
     void newLevel() {
     }
@@ -163,7 +171,7 @@ public class LevelEditor {
         try {
             XMLElement level = new XMLElement(new FileInputStream(file)).getFirstChildWithName("level");
             System.out.println(level);
-            boxes = new ArrayList(IO.readLevel(level.getFirstChildWithName("boxes")));
+            entities = new EntityList(IO.readLevel(level));
             updateBoxList(null);
             setCurrentFile(file);
         } catch (Exception ex) {
@@ -177,7 +185,7 @@ public class LevelEditor {
         }
 
         XMLElement level = XMLElement.createFromName("level");
-        IO.writeLevel(level.createChild("boxes"), boxes);
+        IO.writeLevel(level, entities.getAll());
         try {
             XMLElementWriter.write(new PrintWriter(file), level);
             setCurrentFile(file);
