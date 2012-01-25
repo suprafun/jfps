@@ -23,6 +23,7 @@ import static java.lang.Math.*;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import trb.fps.input.InputState;
 import trb.fps.property.Property;
 import trb.fps.property.PropertyOwner;
 import trb.jsg.util.Mat4;
@@ -96,8 +97,7 @@ public class EditorNavigation extends PropertyOwner {
 //        return viewT3D.getTranslation();
 //    }
 
-    public boolean handleMouseEvent(int dx, int dy) {
-        dy *= -1;
+    public boolean handleMouseEvent(InputState inputState) {
         // move wheel one unit equals draggin 20 pixels
         int pixelsMoved = -Mouse.getDWheel() * 20 / 120;
         if (pixelsMoved != 0) {
@@ -114,6 +114,8 @@ public class EditorNavigation extends PropertyOwner {
         boolean middleDown = Mouse.isButtonDown(2);
         boolean rightDown = Mouse.isButtonDown(1);
 
+        int dx = inputState.mouseDX;
+        int dy = -inputState.mouseDY;
         if (middleDown || (leftDown && rightDown)) {
             zoomExamine(dy);
         } else {

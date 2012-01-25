@@ -2,6 +2,8 @@ package trb.fps.property;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Property<T> {
 
@@ -9,6 +11,7 @@ public class Property<T> {
     public final Class type;
     public T value;
     public final ListenerList<PropertyChangeListener> listeners = new ListenerList();
+    private final Map<Class, Object> userData = new HashMap();
 
     public Property(String name, Class type, T initialValue) {
         this.name = name;
@@ -38,5 +41,17 @@ public class Property<T> {
 
     public Class getType() {
         return type;
+    }
+
+    public void setUserData(Object object) {
+        userData.put(object.getClass(), object);
+    }
+
+    public void setUserData(Class type, Object object) {
+        userData.put(type, object);
+    }
+
+    public <T> T getUserData(Class<T> type) {
+        return (T) userData.get(type);
     }
 }

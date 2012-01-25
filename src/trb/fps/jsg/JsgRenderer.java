@@ -79,10 +79,12 @@ public class JsgRenderer implements FpsRenderer {
         renderPass.getLightState().lights.set(light3, 2);
 
         // add shape to the renderpass tree
-        for (Shape shape : new LevelGenerator().get()) {
-            shape.getState().setShader(shader);
-            renderPass.getRootNode().addShape(shape);
-            level.physicsLevel.addAsConvexHull(shape, false);
+        for (TreeNode node : new LevelGenerator().get()) {
+            for (Shape shape : node.getAllShapesInTree()) {
+                shape.getState().setShader(shader);
+            }
+            renderPass.getRootNode().addChild(node);
+            level.physicsLevel.addAsConvexHull(node, false);
         }
 
         playerModels = createModels(LevelData.MAX_PLAYERS, renderPass.getRootNode()

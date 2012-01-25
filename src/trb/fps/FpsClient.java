@@ -15,6 +15,8 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 import trb.fps.editor.LevelEditor;
+import trb.fps.input.InputManager;
+import trb.fps.input.InputState;
 import trb.fps.jsg.JsgDeferredRenderer;
 import trb.fps.jsg.JsgRenderer;
 import trb.fps.model.PlayerData;
@@ -36,6 +38,8 @@ public class FpsClient {
 	private int playerIdx = -1;
     public final Level level = new Level();
     final List<LevelData> in = Collections.synchronizedList(new ArrayList());
+    public final InputManager inputManager = new InputManager();
+    public final InputState inputState = new InputState();
 
 	public void gameLoop(String name) {
 		Main.initKryo(client.getKryo());
@@ -78,15 +82,13 @@ public class FpsClient {
 			while (isRunning()) {
                 long now = (System.nanoTime() - startTime) / 1000000;
 
-                int dx = Mouse.isInsideWindow() ? Mouse.getDX() : 0;
-                int dy = Mouse.isInsideWindow() ? Mouse.getDY() : 0;
+                inputState.poll();
 
-                Input input = createInput(now, level.interpolatedServerState.getCurrentState().serverTime
-                        , dx, dy);
+                Input input = createInput(now, level.interpolatedServerState.getCurrentState().serverTime);
                 sendInput(input);
 
                 if (level.editorNavigation.enabled.get()) {
-                    level.editorNavigation.handleMouseEvent(dx, dy);
+                    level.editorNavigation.handleMouseEvent(inputState);
                 }
 
                 level.predictedState.update(new PlayerUpdator(input, level.character, level.physicsLevel));
@@ -161,33 +163,27 @@ public class FpsClient {
     /**
      * Polls Keyboard and Mouse. Drains Mouse events.
      */
-    Input createInput(long time, long serverTime, int dx, int dy) {
-        while (Keyboard.next()) {
-            if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_RETURN) {
-                client.sendTCP("respawn");
-            }
-            if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_HOME) {
-                level.editorNavigation.enabled.set(!level.editorNavigation.enabled.get());
-            }
-            if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_V) {
-                View.useFrustumCulling = !View.useFrustumCulling;
-                System.out.println("useFrustumCulling = " + View.useFrustumCulling);
-            }
-            if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_F1) {
-                renderer = orthoRenderer;
-            }
-            if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_F2) {
-                renderer = jsgRenderer;
-            }
+    Input createInput(long time, long serverTime) {
+        if (inputState.wasKeyPressed(Keyboard.KEY_RETURN)) {
+            client.sendTCP("respawn");
         }
-        boolean mouseButton1pressed = false;
-        while (Mouse.next()) {
-            if (Mouse.getEventButton() == 0 && Mouse.getEventButtonState()) {
-                mouseButton1pressed = true;
-                if (level.levelData.players[playerIdx].getHealth() <= 0) {
-                    client.sendTCP("respawn");
-                }
-            }
+        if (inputState.wasKeyPressed(Keyboard.KEY_HOME)) {
+            System.out.println("AAAAAAAAAAAAAAAAAAAAA");
+            level.editorNavigation.enabled.set(!level.editorNavigation.enabled.get());
+        }
+        if (inputState.wasKeyPressed(Keyboard.KEY_V)) {
+            View.useFrustumCulling = !View.useFrustumCulling;
+            System.out.println("useFrustumCulling = " + View.useFrustumCulling);
+        }
+        if (inputState.wasKeyPressed(Keyboard.KEY_F1)) {
+            renderer = orthoRenderer;
+        }
+        if (inputState.wasKeyPressed(Keyboard.KEY_F2)) {
+            renderer = jsgRenderer;
+        }
+        boolean mouseButton1pressed = inputState.wasButtonPressed(0);
+        if (mouseButton1pressed && level.levelData.players[playerIdx].getHealth() <= 0) {
+            client.sendTCP("respawn");
         }
         int moveX = 0;
         int moveY = 0;
@@ -200,8 +196,8 @@ public class FpsClient {
                 serverTime,
                 moveX,
                 moveY,
-                Mouse.isButtonDown(1) ? dx : 0,
-                Mouse.isButtonDown(1) ? dy : 0,
+                Mouse.isButtonDown(1) ? inputState.mouseDX : 0,
+                Mouse.isButtonDown(1) ? inputState.mouseDY : 0,
                 mouseButton1pressed);
     }
 }

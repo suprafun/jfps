@@ -17,24 +17,19 @@
  * granted.
  */
 
-package trb.fps.editor;
-
-import org.lwjgl.input.Mouse;
+package trb.fps.input;
 
 /**
  *
  * @author tomrbryn
  */
-public class InputState {
+public class KeyEvent {
 
-    public boolean isLeftDown() {
-        return Mouse.isButtonDown(0);
-    }
+    public final boolean state;
+    public final int key;
 
-    public boolean isMiddleDown() {
-        return Mouse.isButtonDown(0);
-    }
-    public boolean isRightDown() {
-        return Mouse.isButtonDown(0);
+    public KeyEvent(boolean state, int key) {
+        this.state = state;
+        this.key = key;
     }
 }

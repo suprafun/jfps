@@ -78,11 +78,12 @@ public class JsgDeferredRenderer implements FpsRenderer {
         NormalMapping.shader.putUniform(new Uniform("farClipDistance", Uniform.Type.FLOAT, far));
 
         // add shape to the renderpass tree
-        for (Shape shape : levelGenerator.get()) {
-            NormalMapping.apply(shape);
-            //shape.getState().setShader(shader);
-            replaceableNode.addShape(shape);
-            level.physicsLevel.addAsConvexHull(shape, false);
+        for (TreeNode node : levelGenerator.get()) {
+            for (Shape shape : node.getAllShapesInTree()) {
+                NormalMapping.apply(shape);
+            }
+            replaceableNode.addChild(node);
+            level.physicsLevel.addAsConvexHull(node, false);
         }
         basePass.getRootNode().addChild(replaceableNode);
 
@@ -167,16 +168,20 @@ public class JsgDeferredRenderer implements FpsRenderer {
     }
 
     public void render(Level l, int localPlayerIdx) {
-        if (levelGenerator.shapesChanged) {
+        if (levelGenerator.nodesChanged) {
             basePass.getRootNode().removeChild(replaceableNode);
-            replaceableNode = new TreeNode();
-
-            for (Shape shape : levelGenerator.get()) {
-                shape.getState().setShader(shader);
-                replaceableNode.addShape(shape);
+            for (TreeNode child : replaceableNode.getChildren()) {
+                replaceableNode.removeChild(child);
             }
+            replaceableNode = new TreeNode();
             basePass.getRootNode().addChild(replaceableNode);
-            basePass.getRootNode().updateTree(true);
+
+            for (TreeNode node : levelGenerator.get()) {
+                for (Shape shape : node.getAllShapesInTree()) {
+                    shape.getState().setShader(shader);
+                }
+                replaceableNode.addChild(node);
+            }
         }
 
         LevelData level = l.levelData;

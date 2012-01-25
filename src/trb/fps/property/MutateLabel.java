@@ -9,7 +9,9 @@ import javax.swing.JLabel;
 public class MutateLabel {
 
     private final Property property;
-    private JLabel label;
+    private final JLabel label;
+    private final Mutator mutator;
+    private static final Mutator DEFAULT_MUTATOR = new NumberMutator();
     private Point dragStart;
     private Number valueStart;
 
@@ -22,22 +24,22 @@ public class MutateLabel {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            Number newValue = mutate(valueStart, e.getPoint().x - dragStart.x);
-            //property.set(valueStart, newValue, false);
-            property.set(newValue);
+            property.set(mutator.mutate(property.getType(), valueStart, e.getPoint().x - dragStart.x));
         }
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            Number newValue = mutate(valueStart, e.getPoint().x - dragStart.x);
-            //setValue(newValue);
-            //property.set(valueStart, newValue, true);
-            property.set(newValue);
+            property.set(mutator.mutate(property.getType(), valueStart, e.getPoint().x - dragStart.x));
         }
     };
 
     public MutateLabel(Property p) {
+        this(p, (Mutator) p.getUserData(Mutator.class));
+    }
+
+    public MutateLabel(Property p, Mutator mutator) {
         this.property = p;
+        this.mutator = (mutator != null) ? mutator : DEFAULT_MUTATOR;
         label = new JLabel(p.getName());
         label.setCursor(new Cursor(Cursor.E_RESIZE_CURSOR));
         label.addMouseListener(listener);
@@ -46,30 +48,5 @@ public class MutateLabel {
 
     public JLabel get() {
         return label;
-    }
-
-    public Number mutate(Number valueStart, int amount) {
-        Class type = property.getType();
-        if (Double.class == type || double.class == type) {
-            return pow(valueStart.doubleValue(), amount);
-        } else if (Float.class == type || float.class == type) {
-            return (float) pow(valueStart.doubleValue(), amount);
-        } else if (Integer.class == type || int.class == type) {
-            return valueStart.intValue() + amount;
-        } else if (Long.class == type || long.class == type) {
-            return valueStart.longValue() + amount;
-        } else if (Short.class == type || short.class == type) {
-            return (short) (valueStart.shortValue() + amount);
-        } else if (Byte.class == type || byte.class == type) {
-            return (byte) (valueStart.byteValue() + amount);
-        }
-
-        return valueStart;
-    }
-
-    public static double pow(double start, int dx) {
-        double factor = Math.pow(1.005, Math.abs(dx));
-        double sign = dx < 0 ? -1 : 1;
-        return start + Math.max(1, Math.abs(start)) * (factor - 1) * sign;
     }
 }
