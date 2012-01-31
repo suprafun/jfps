@@ -31,7 +31,7 @@ public class PointLight {
     private Shape quadShape;
 
     public PointLight(Vec3 color, Vec3 positionWorld, float radius
-            , Texture texture, ShaderProgram shaderProgram, VertexData fullScreenVertexData) {
+            , Texture texture, Texture rgbiTexture, ShaderProgram shaderProgram, VertexData fullScreenVertexData) {
         this.positionWorld.set(positionWorld);
         this.radius = radius;
         this.shader = new Shader(shaderProgram);
@@ -46,12 +46,15 @@ public class PointLight {
         shader.putUniform(colorUniform);
         shader.putUniform(farClipDistanceUniform);
         shader.putUniform(positionViewSpaceUniform);
+        shader.putUniform(new Uniform("geotexture", Uniform.Type.INT, new int[]{0}));
+        shader.putUniform(new Uniform("rgbiTexture", Uniform.Type.INT, new int[]{1}));
 
         boxShape = new Box(new Vec3(-radius, -radius, -radius), new Vec3(radius, radius, radius));
         boxShape.setModelMatrix(new Mat4().translate(positionWorld));
         boxShape.getState().setCullEnabled(true);
         boxShape.getState().setCullFace(Face.BACK);
         boxShape.getState().setUnit(0, new Unit(texture));
+        boxShape.getState().setUnit(1, new Unit(rgbiTexture));
         boxShape.getState().setShader(shader);
         boxShape.getState().setBlendEnabled(true);
         boxShape.getState().setBlendDstFunc(BlendDstFunc.ONE);
@@ -63,6 +66,7 @@ public class PointLight {
 
         quadShape = new Shape(fullScreenVertexData);
         quadShape.getState().setUnit(0, new Unit(texture));
+        quadShape.getState().setUnit(1, new Unit(rgbiTexture));
         quadShape.getState().setShader(shader);
         quadShape.getState().setBlendEnabled(true);
         quadShape.getState().setBlendDstFunc(BlendDstFunc.ONE);

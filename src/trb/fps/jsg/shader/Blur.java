@@ -81,7 +81,7 @@ public class Blur {
 			}
 		}
 		ByteBuffer[][] pixels = {{byteBuffer}};
-		Texture ping = new Texture(TextureType.TEXTURE_2D, 4, 256, 256, 0, Format.BGRA, pixels, false);
+		Texture ping = new Texture(TextureType.TEXTURE_2D, 4, 256, 256, 0, Format.BGRA, pixels, false, false);
 		Texture pong = SGUtil.createTexture(4, 256, 256);
 
 		Blur blur = new Blur(ping, pong);

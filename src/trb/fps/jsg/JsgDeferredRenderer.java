@@ -79,12 +79,12 @@ public class JsgDeferredRenderer implements FpsRenderer {
 		Texture mixedTexture = SGUtil.createTexture(GL11.GL_RGB, basew, baseh);
 
         Texture baseTexture = basePass.getRenderTarget().getColorAttachments()[0];
-        Texture rgbaTexture = basePass.getRenderTarget().getColorAttachments()[1];
+        Texture rgbiTexture = basePass.getRenderTarget().getColorAttachments()[1];
         DepthBuffer baseDepth = basePass.getRenderTarget().getDepthBuffer();
         lightManager = new LightManager(
-                baseTexture, baseDepth, lightTexture, view, new Point2f(basew, baseh));
+                baseTexture, rgbiTexture, baseDepth, lightTexture, view, new Point2f(basew, baseh));
 
-		FinalPass.createFinalPass(lightTexture, rgbaTexture, mixedTexture, baseDepth, basew, baseh, view);
+		FinalPass.createFinalPass(lightTexture, rgbiTexture, mixedTexture, baseDepth, basew, baseh, view);
 		skyboxPass = new SkyboxPass(view, mixedTexture, baseDepth);
 
         sceneGraph.addRenderPass(lightManager.renderPass);

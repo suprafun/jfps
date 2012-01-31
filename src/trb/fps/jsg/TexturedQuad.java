@@ -36,7 +36,8 @@ public class TexturedQuad {
 
         ByteBuffer[][] pixels = {{byteBuffer}};
 
-        texture.setTextureData(TextureType.TEXTURE_2D, 4, image.getWidth(), image.getHeight(), 0, Format.BGRA, pixels, false);
+        texture.setTextureData(TextureType.TEXTURE_2D, 4, image.getWidth(), image.getHeight()
+                , 0, Format.BGRA, pixels, false, false);
 
         shape = new Shape();
         shape.setVertexData(vertexData);
