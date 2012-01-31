@@ -52,7 +52,7 @@ public class NormalMapping {
 			+ "\n    n = texture2D(normalmap, gl_TexCoord[0].xy).xyz * 2.0 - 1.0;"
 			+ "\n    vec3 nVS = base * n;"
             + "\n    gl_FragData[0] = vec4( normalize( nVS ) * 0.5 + 0.5, -posv.z / farClipDistance );"
-            + "\n    gl_FragData[1] = vec4(texture2D(texturemap, gl_TexCoord[0].xy).xyz, 1);"
+            + "\n    gl_FragData[1] = texture2D(texturemap, gl_TexCoord[0].xy).xyzw;"
             + "\n}";
 
     public static final Shader shader;

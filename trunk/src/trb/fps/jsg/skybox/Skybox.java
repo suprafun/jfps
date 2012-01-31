@@ -40,7 +40,7 @@ public class Skybox {
                 h = image.getHeight();
                 pixels[i][0] = TextureLoader.getImageData(image);
             }
-            texture = new Texture(TextureType.TEXTURE_CUBE_MAP, GL11.GL_RGBA, w, h, 0, Format.BGRA, pixels, false);
+            texture = new Texture(TextureType.TEXTURE_CUBE_MAP, GL11.GL_RGBA, w, h, 0, Format.BGRA, pixels, false, false);
             texture.setWrapS(Wrap.CLAMP_TO_EDGE);
             texture.setWrapT(Wrap.CLAMP_TO_EDGE);
             texture.setWrapR(Wrap.CLAMP_TO_EDGE);

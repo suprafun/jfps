@@ -74,7 +74,7 @@ public class PointLightTest {
 
         DepthBuffer baseDepth = basePass.getRenderTarget().getDepthBuffer();
         LightManager lightManager = new LightManager(
-                baseTexture, baseDepth, lightTexture, view, new Point2f(windowWidth, windowHeight));
+                baseTexture, rgbaTexture, baseDepth, lightTexture, view, new Point2f(windowWidth, windowHeight));
         PointLight light1 = lightManager.createPointLight(new Vec3(1, 0, 1), new Vec3(14, 5, 0), 10);
         PointLight light2 = lightManager.createPointLight(new Vec3(0, 1, 0), new Vec3(-14, 5, 0), 10);
         PointLight light3 = lightManager.createPointLight(new Vec3(1, 1, 1), new Vec3(0, 1, 0), 40);
@@ -96,12 +96,6 @@ public class PointLightTest {
 		sceneGraph.addRenderPass(skyboxPass.renderPass);
 //		sceneGraph.addRenderPass(bloom.renderPass);
 		sceneGraph.addRenderPass(FinalPass.toScreenPass);
-
-//		SkyboxPass skyboxPass = new SkyboxPass(view, rgbaTexture, baseDepth);
-//		sceneGraph.addRenderPass(skyboxPass.renderPass);
-//		sceneGraph.addRenderPass(basePass);
-//		FinalPass.createFinalPass(rgbaTexture, null, rgbaTexture, baseDepth, basew, baseh, view);
-//		sceneGraph.addRenderPass(FinalPass.toScreenPass);
 
         // create a renderer that renders the scenegraph
         Renderer renderer = new Renderer(sceneGraph);

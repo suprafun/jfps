@@ -59,7 +59,7 @@ public class Bloom {
         shader.putUniform(new Uniform("offset", Uniform.Type.VEC2, offset, 0f));
 
         ByteBuffer[][] pixels = {{BufferUtils.createByteBuffer(w2 * h2 * 4)}};
-        bloomTexture = new Texture(TextureType.TEXTURE_2D, GL30.GL_RGBA16F, w2, h2, 0, Format.RGBA, pixels, false);
+        bloomTexture = new Texture(TextureType.TEXTURE_2D, GL30.GL_RGBA16F, w2, h2, 0, Format.RGBA, pixels, false, false);
 
         Shape shape = new Shape();
         shape.setVertexData(VertexDataUtils.createQuad(0, 0, w2, h2, 0));
