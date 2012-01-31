@@ -1,6 +1,7 @@
-package trb.fps;
+package trb.fps.client;
 
-import trb.fps.model.LevelData;
+import trb.fps.net.HandshakePacket;
+import trb.fps.net.LevelPacket;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -14,30 +15,35 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
-import trb.fps.editor.LevelEditor;
+import trb.fps.Input;
+import trb.fps.Main;
+import trb.fps.OrthoRenderer;
+import trb.fps.PlayerUpdator;
+import trb.fps.entity.EntityList;
+import trb.fps.entity.IO;
 import trb.fps.input.InputManager;
 import trb.fps.input.InputState;
 import trb.fps.jsg.JsgDeferredRenderer;
 import trb.fps.jsg.JsgRenderer;
-import trb.fps.model.PlayerData;
-import trb.fps.model.ServerData;
+import trb.fps.net.ChangeLevelPacket;
+import trb.fps.net.PlayerPacket;
+import trb.fps.net.ServerPacket;
+import trb.fps.physics.PhysicsLevel;
 import trb.jsg.View;
+import trb.xml.XMLElement;
 
 public class FpsClient {
 
     public static boolean useTopView = false;
 
-    private final LevelGenerator levelGenerator = new LevelGenerator();
-    private final LevelEditor levelEditor = new LevelEditor(levelGenerator);
-
     public final FpsRenderer orthoRenderer = new OrthoRenderer();
     public final FpsRenderer jsgRenderer = new JsgRenderer();
-    public final FpsRenderer jsgDeferredRenderer = new JsgDeferredRenderer(levelGenerator);
+    public final JsgDeferredRenderer jsgDeferredRenderer = new JsgDeferredRenderer();
     public FpsRenderer renderer = jsgDeferredRenderer;
-	private final Client client = new Client();
-	private int playerIdx = -1;
+	private final Client client = new Client(1024*64, 1024*256);
+	private int playerId = -1;
     public final Level level = new Level();
-    final List<LevelData> in = Collections.synchronizedList(new ArrayList());
+    final List<LevelPacket> in = Collections.synchronizedList(new ArrayList());
     public final InputManager inputManager = new InputManager();
     public final InputState inputState = new InputState();
 
@@ -51,10 +57,21 @@ public class FpsClient {
 				@Override
 				public void received(Connection connection, Object object) {
 					//System.out.println("client received: " + object + " from " + connection.getID());
-					if (object instanceof Handshake) {
-						playerIdx = ((Handshake) object).playerIdx;
-					} else if (object instanceof LevelData) {
-						level.levelData = (LevelData) object;
+					if (object instanceof HandshakePacket) {
+						playerId = ((HandshakePacket) object).playerId;
+                    } else if (object instanceof ChangeLevelPacket) {
+                        ChangeLevelPacket changeLevelPacket = (ChangeLevelPacket) object;
+                        try {
+                            XMLElement xml = new XMLElement(changeLevelPacket.levelXml);
+                            System.out.println(xml.toString());
+                            EntityList entities = new EntityList(IO.readLevel(xml.getFirstChildWithName("level")));
+                            level.changeLevel(entities);
+                            jsgDeferredRenderer.deferredSystem.recreate(entities);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    } else if (object instanceof LevelPacket) {
+						level.levelData = (LevelPacket) object;
                         in.add(level.levelData);
 					}
 				}
@@ -62,10 +79,10 @@ public class FpsClient {
 				@Override
 				public void disconnected(Connection connection) {
 					System.out.println("client disconnected " + connection);
-					playerIdx = -2;
+					playerId = -2;
 				}
 			});
-			client.sendTCP(new Handshake(name, -1));
+			client.sendTCP(new HandshakePacket(name, -1));
 
 	//		Mouse.setGrabbed(true);
 
@@ -91,24 +108,25 @@ public class FpsClient {
                     level.editorNavigation.handleMouseEvent(inputState);
                 }
 
-                level.predictedState.update(new PlayerUpdator(input, level.character, level.physicsLevel));
-                LevelData levelData = null;
+                //System.out.println(level.physicsLevel + " " + level.physicsLevel.dynamicsWorld.getCollisionObjectArray().size());
+                level.predictedState.update(new PlayerUpdator(input, level.physicsLevel));
+                LevelPacket levelData = null;
                 if (!in.isEmpty()) {
                     synchronized (in) {
                         levelData = in.get(in.size()-1);
                         in.clear();
                     }
-                    level.predictedState.correct(levelData.players[playerIdx]);
+                    level.predictedState.correct(levelData.getPlayer(playerId));
                 }
 
                 for (int i = 0; i < level.interpolatedState.size(); i++) {
-                    PlayerData fromServer = (levelData == null ? null : levelData.players[i]);
+                    PlayerPacket fromServer = (levelData == null ? null : levelData.players[i]);
                     level.interpolatedState.get(i).update(now, fromServer);
                 }
 
-                level.interpolatedServerState.update(now, levelData == null ? null : new ServerData(levelData.serverTimeMillis));
+                level.interpolatedServerState.update(now, levelData == null ? null : new ServerPacket(levelData.serverTimeMillis));
 
-				renderer.render(level, playerIdx);
+				renderer.render(level, level.levelData.getPlayerIndex(playerId));
 
                 fpsCounter++;
                 long fpsNow = System.currentTimeMillis();
@@ -127,7 +145,7 @@ public class FpsClient {
 			JOptionPane.showMessageDialog(null, "Something went wrong");
 			System.exit(0);
 		}
-        if (playerIdx < -1) {
+        if (playerId < -1) {
             JOptionPane.showMessageDialog(null, "You were disconnected");
         }
 		client.stop();
@@ -153,7 +171,7 @@ public class FpsClient {
 	private boolean isRunning() {
 		return !Display.isCloseRequested() 
 				&& !Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)
-				&& playerIdx >= -1;
+				&& playerId >= -1;
 	}
 
 	private void sendInput(Input input) {
@@ -168,12 +186,10 @@ public class FpsClient {
             client.sendTCP("respawn");
         }
         if (inputState.wasKeyPressed(Keyboard.KEY_HOME)) {
-            System.out.println("AAAAAAAAAAAAAAAAAAAAA");
             level.editorNavigation.enabled.set(!level.editorNavigation.enabled.get());
         }
         if (inputState.wasKeyPressed(Keyboard.KEY_V)) {
             View.useFrustumCulling = !View.useFrustumCulling;
-            System.out.println("useFrustumCulling = " + View.useFrustumCulling);
         }
         if (inputState.wasKeyPressed(Keyboard.KEY_F1)) {
             renderer = orthoRenderer;
@@ -182,7 +198,7 @@ public class FpsClient {
             renderer = jsgRenderer;
         }
         boolean mouseButton1pressed = inputState.wasButtonPressed(0);
-        if (mouseButton1pressed && level.levelData.players[playerIdx].getHealth() <= 0) {
+        if (mouseButton1pressed && level.levelData.getPlayer(playerId).getHealth() <= 0) {
             client.sendTCP("respawn");
         }
         int moveX = 0;

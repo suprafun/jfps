@@ -1,24 +1,6 @@
-/*
- * HALDEN VR PLATFORM
- *
- * RADIATION MODULE
- *
- * $RCSfile: $
- *
- * Author :
- * Date   :
- * Version: $Revision: $ ($Date: $)
- *
- * (c) 2000-2011 Halden Virtual Reality Centre <http://www.ife.no/vr/>,
- * Institutt for energiteknikk. All rights reserved.
- *
- * This code is the property of Halden VR Centre <vr-info@hrp.no> and may
- * only be used in accordance with the terms of the license agreement
- * granted.
- */
+package trb.fps.entity;
 
-package trb.fps.editor;
-
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import trb.fps.property.Property;
@@ -32,10 +14,12 @@ import trb.xml.XMLElement;
  */
 public class IO {
 
-    public static void writeLevel(XMLElement parent, List<Entity> entities) {
+    public static XMLElement writeLevel(List<Entity> entities) {
+        XMLElement parent = XMLElement.createFromName("level");
         for (Entity entity : entities) {
             writeEntity(parent.createChild("entity"), entity);
         }
+        return parent;
     }
 
     public static void writeEntity(XMLElement parent, Entity entity) {
@@ -57,8 +41,16 @@ public class IO {
     }
 
     public static void writeProperty(XMLElement parent, Property property) {
-        XMLElement propertyElem = parent.createChild("property", "" + property.get());
+        XMLElement propertyElem = parent.createChild("property", toText(property));
         propertyElem.addAttribute(new XMLAttribute("name", property.getName()));
+    }
+
+    public static String toText(Property p) {
+        if (p.getType().isAssignableFrom(Color.class)) {
+            Color color = (Color) p.get();
+            return Integer.toHexString(color.getRGB());
+        }
+        return "" + p.get();
     }
 
     public static List<Entity> readLevel(XMLElement levelElem) {
@@ -111,9 +103,15 @@ public class IO {
             return Double.parseDouble(text);
         } else if (Long.class.equals(type)) {
             return Long.parseLong(text);
+        } else if (Color.class.equals(type)) {
+            return new Color((int) Long.parseLong(text, 16));
         }
 
         System.err.println(IO.class.getSimpleName() + " failed to parse \"" + text + "\" of type " + type);
+        try {
+            return type.newInstance();
+        } catch (Exception ex) {
+        }
         return null;
     }
 
@@ -121,8 +119,7 @@ public class IO {
         List<Entity> entities = new ArrayList();
         entities.add(Box.fromMinMax("abc", 0, 0, 0, 10, 11, 12));
         entities.add(Box.fromMinMax("abc", -1, -1, -1, 1, 1, 1));
-        XMLElement root = XMLElement.createFromName("level");
-        writeLevel(root, entities);
+        XMLElement root = writeLevel(entities);
         System.out.println(root.toString());
 
         printEntities(entities);

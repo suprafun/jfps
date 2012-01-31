@@ -1,4 +1,4 @@
-package trb.fps;
+package trb.fps.util;
 
 import trb.jsg.util.Vec3;
 

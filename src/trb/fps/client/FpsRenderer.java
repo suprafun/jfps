@@ -1,4 +1,4 @@
-package trb.fps;
+package trb.fps.client;
 
 public interface FpsRenderer {
     public void init(Level level);

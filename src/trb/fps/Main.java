@@ -1,10 +1,16 @@
 package trb.fps;
 
-import trb.fps.model.LevelData;
-import trb.fps.model.PlayerData;
+import trb.fps.client.FpsClient;
+import trb.fps.server.FpsServer;
+import trb.fps.net.HandshakePacket;
+import trb.fps.net.LevelPacket;
+import trb.fps.net.PlayerPacket;
 import com.esotericsoftware.kryo.Kryo;
+import java.util.ArrayList;
 import javax.swing.JOptionPane;
-import trb.fps.model.BulletData;
+import trb.fps.editor.LevelEditor;
+import trb.fps.net.BulletPacket;
+import trb.fps.net.ChangeLevelPacket;
 
 public class Main {
 
@@ -12,13 +18,18 @@ public class Main {
 		ConnectPanel connectPanel = new ConnectPanel();
 		if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(
                 null, connectPanel, "Title", JOptionPane.OK_CANCEL_OPTION) ) {
-            System.out.println("" + connectPanel.serverBtn.isSelected());
+            System.out.println("" + connectPanel.hostBtn.isSelected());
             FpsServer server = null;
-            if (connectPanel.serverBtn.isSelected()) {
+            FpsClient client = new FpsClient();
+            if (connectPanel.hostBtn.isSelected()) {
                 server = startServer();
+                server.gameLogic.level.killLimit = (Integer) connectPanel.killLimit.getValue();
+                if (connectPanel.startEditor.isSelected()) {
+                    LevelEditor editor = new LevelEditor(server, client);
+                    server.changeLevel(editor.entities);
+                }
             }
-            FpsClient fpsClient = new FpsClient();
-            fpsClient.gameLoop(connectPanel.nameTxt.getText());
+            client.gameLoop(connectPanel.nameTxt.getText());
             if (server != null) {
                 server.stop();
             }
@@ -34,11 +45,13 @@ public class Main {
 	public static void initKryo(Kryo kryo) {
         kryo.register(float[].class);
         kryo.register(Input.class);
-        kryo.register(PlayerData.class);
-        kryo.register(PlayerData[].class);
-        kryo.register(BulletData.class);
-        kryo.register(BulletData[].class);
-        kryo.register(LevelData.class);
-		kryo.register(Handshake.class);
+        kryo.register(PlayerPacket.class);
+        kryo.register(PlayerPacket[].class);
+        kryo.register(BulletPacket.class);
+        kryo.register(BulletPacket[].class);
+        kryo.register(LevelPacket.class);
+        kryo.register(HandshakePacket.class);
+        kryo.register(ArrayList.class);
+        kryo.register(ChangeLevelPacket.class);
 	}
 }

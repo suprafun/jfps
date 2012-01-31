@@ -1,4 +1,4 @@
-package trb.fps.editor;
+package trb.fps.entity;
 
 import java.util.ArrayList;
 import java.util.Iterator;

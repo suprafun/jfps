@@ -1,22 +1,3 @@
-/*
- * HALDEN VR PLATFORM
- *
- * RADIATION MODULE
- *
- * $RCSfile: $
- *
- * Author :
- * Date   :
- * Version: $Revision: $ ($Date: $)
- *
- * (c) 2000-2011 Halden Virtual Reality Centre <http://www.ife.no/vr/>,
- * Institutt for energiteknikk. All rights reserved.
- *
- * This code is the property of Halden VR Centre <vr-info@hrp.no> and may
- * only be used in accordance with the terms of the license agreement
- * granted.
- */
-
 package trb.fps.editor;
 
 import java.awt.event.ActionEvent;
@@ -24,10 +5,6 @@ import javax.swing.AbstractAction;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 
-/**
- *
- * @author tomrbryn
- */
 public class EditorMenu {
 
     private final LevelEditor editor;
@@ -35,7 +12,8 @@ public class EditorMenu {
 
     public EditorMenu(LevelEditor editor) {
         this.editor = editor;
-        createFileMenu();        
+        createFileMenu();
+        createLevelMenu();
     }
 
     private void createFileMenu() {
@@ -63,6 +41,35 @@ public class EditorMenu {
 
             public void actionPerformed(ActionEvent e) {
                 editor.saveAs();
+            }
+        });
+    }
+
+    private void createLevelMenu() {
+        JMenu menu = new JMenu("Create");
+        menuBar.add(menu);
+        menu.add(new AbstractAction("Box") {
+
+            public void actionPerformed(ActionEvent e) {
+                editor.addBox();
+            }
+        });
+        menu.add(new AbstractAction("Point Light") {
+
+            public void actionPerformed(ActionEvent e) {
+                editor.createPointLight();
+            }
+        });
+        menu.add(new AbstractAction("Hemisphere Light") {
+
+            public void actionPerformed(ActionEvent e) {
+                editor.createHemisphereLight();
+            }
+        });
+        menu.add(new AbstractAction("Spawn Point") {
+
+            public void actionPerformed(ActionEvent e) {
+                editor.createSpawnPoint();
             }
         });
     }

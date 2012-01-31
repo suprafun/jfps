@@ -1,16 +1,15 @@
 package trb.fps.jsg;
 
 import javax.vecmath.Color4f;
-import javax.vecmath.Matrix4f;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import trb.fps.FpsRenderer;
-import trb.fps.FpsServer;
-import trb.fps.Level;
+import trb.fps.client.FpsRenderer;
+import trb.fps.client.Level;
 import trb.fps.LevelGenerator;
-import trb.fps.model.BulletData;
-import trb.fps.model.LevelData;
-import trb.fps.model.PlayerData;
+import trb.fps.net.BulletPacket;
+import trb.fps.net.LevelPacket;
+import trb.fps.net.PlayerPacket;
+import trb.fps.server.GameLogic;
 import trb.jsg.LightState.Light;
 import trb.jsg.RenderPass;
 import trb.jsg.SceneGraph;
@@ -84,12 +83,12 @@ public class JsgRenderer implements FpsRenderer {
                 shape.getState().setShader(shader);
             }
             renderPass.getRootNode().addChild(node);
-            level.physicsLevel.addAsConvexHull(node, false);
+            //level.physicsLevel.addAsConvexHull(node, false);
         }
 
-        playerModels = createModels(LevelData.MAX_PLAYERS, renderPass.getRootNode()
+        playerModels = createModels(LevelPacket.MAX_PLAYERS, renderPass.getRootNode()
                 , JsgBox.createFromPosSize(new Vec3(0, 1, 0), new Vec3(0.5f, 2f, 0.08f)));
-        bulletModels = createModels(LevelData.MAX_BULLETS, renderPass.getRootNode()
+        bulletModels = createModels(LevelPacket.MAX_BULLETS, renderPass.getRootNode()
                 , JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
 
         // add renderpass to scene graph
@@ -124,13 +123,13 @@ public class JsgRenderer implements FpsRenderer {
     }
 
     public void render(Level l, int localPlayerIdx) {
-        LevelData level = l.levelData;
+        LevelPacket level = l.levelData;
 
         float timeSec = (System.currentTimeMillis() - startTimeMillis) / 1000f;
 
         if (localPlayerIdx >= 0 && !useTopView) {
             //PlayerData player = level.players[localPlayerIdx];
-            PlayerData player = l.predictedState.getCurrentState();
+            PlayerPacket player = l.predictedState.getCurrentState();
             view.setCameraMatrix(player.getViewTransform());
         } else {
             float angle = level.serverTimeMillis / 3000f;
@@ -153,7 +152,7 @@ public class JsgRenderer implements FpsRenderer {
 
     private void renderPlayers(Level level, int localPlayerIdx) {
         for (int i = 0; i < playerModels.length; i++) {
-            PlayerData player = level.interpolatedState.get(i).getCurrentState();
+            PlayerPacket player = level.interpolatedState.get(i).getCurrentState();
             boolean isLocal = (i == localPlayerIdx);
             boolean visible = player.isConnected() && (!isLocal || useTopView);
             for (Shape shape : playerModels[i].getAllShapesInTree()) {
@@ -175,14 +174,14 @@ public class JsgRenderer implements FpsRenderer {
         }
     }
 
-    private void renderBullets(LevelData level) {
+    private void renderBullets(LevelPacket level) {
         for (int i = 0; i < level.bullets.length; i++) {
-            BulletData bullet = level.bullets[i];
+            BulletPacket bullet = level.bullets[i];
             for (Shape shape : bulletModels[i].getAllShapesInTree()) {
                 shape.setVisible(bullet.alive);
             }
             if (bullet.alive) {
-                Vec3 bulletPos = FpsServer.getPositionAtTime(bullet, level.serverTimeMillis);
+                Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, level.serverTimeMillis);
                 bulletModels[i].setTransform(new Mat4().setTranslation_(bulletPos));
             }
         }

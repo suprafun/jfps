@@ -1,7 +1,8 @@
-package trb.fps.editor;
+package trb.fps.entity;
 
 import java.beans.PropertyChangeEvent;
 import java.util.List;
+import trb.fps.property.Property;
 import trb.fps.property.PropertyOwner;
 
 public class Component extends PropertyOwner {
@@ -37,4 +38,13 @@ public class Component extends PropertyOwner {
     protected void entityPropertyChanged(PropertyChangeEvent e) {
         
     }
+
+    public long getLastChange() {
+        long lastChange = -1;
+        for (Property p : this) {
+            lastChange = Math.max(lastChange, p.lastChange);
+        }
+        return lastChange;
+    }
 }
+

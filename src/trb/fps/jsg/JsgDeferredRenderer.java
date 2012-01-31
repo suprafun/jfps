@@ -1,21 +1,20 @@
 package trb.fps.jsg;
-import java.util.Random;
 import javax.vecmath.Point2f;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
-import trb.fps.FpsRenderer;
-import trb.fps.FpsServer;
-import trb.fps.Level;
-import trb.fps.LevelGenerator;
+import trb.fps.client.FpsRenderer;
+import trb.fps.client.Level;
+import trb.fps.entity.DeferredSystem;
 import trb.fps.jsg.shader.BasePass;
 import trb.fps.jsg.shader.FinalPass;
 import trb.fps.jsg.shader.LightManager;
 import trb.fps.jsg.shader.NormalMapping;
 import trb.fps.jsg.shader.SkyboxPass;
-import trb.fps.model.BulletData;
-import trb.fps.model.LevelData;
-import trb.fps.model.PlayerData;
+import trb.fps.net.BulletPacket;
+import trb.fps.net.LevelPacket;
+import trb.fps.net.PlayerPacket;
+import trb.fps.server.GameLogic;
 import trb.jsg.DepthBuffer;
 import trb.jsg.RenderPass;
 import trb.jsg.SceneGraph;
@@ -45,22 +44,16 @@ public class JsgDeferredRenderer implements FpsRenderer {
     private View view = new View();
     private Renderer renderer;
     private long startTimeMillis = System.currentTimeMillis();
-    private RenderPass basePass;
-    private TreeNode replaceableNode = new TreeNode();
+    public RenderPass basePass;
     private TreeNode[] playerModels;
     private TreeNode[] bulletModels;
     private JsgHud hud;
     private Level level;
     private final Shader shader = new Shader(BasePass.baseProgram);
-    private LightManager lightManager;
-    private LevelGenerator levelGenerator;
+    public LightManager lightManager;
 	private SkyboxPass skyboxPass;
-
     private final float far = 200f;
-
-    public JsgDeferredRenderer(LevelGenerator levelGenerator) {
-        this.levelGenerator = levelGenerator;
-    }
+    public DeferredSystem deferredSystem = new DeferredSystem(this);
 
     public void init(Level level) {
         this.level = level;
@@ -77,17 +70,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
         shader.putUniform(new Uniform("farClipDistance", Uniform.Type.FLOAT, far));
         NormalMapping.shader.putUniform(new Uniform("farClipDistance", Uniform.Type.FLOAT, far));
 
-        // add shape to the renderpass tree
-        for (TreeNode node : levelGenerator.get()) {
-            for (Shape shape : node.getAllShapesInTree()) {
-                NormalMapping.apply(shape);
-            }
-            replaceableNode.addChild(node);
-            level.physicsLevel.addAsConvexHull(node, false);
-        }
-        basePass.getRootNode().addChild(replaceableNode);
-
-        playerModels = createModels(LevelData.MAX_PLAYERS, basePass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 1, 0), new Vec3(0.5f, 2f, 0.08f)));
+        playerModels = createModels(LevelPacket.MAX_PLAYERS, basePass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 1, 0), new Vec3(0.5f, 2f, 0.08f)));
 
         // add renderpass to scene graph
         SceneGraph sceneGraph = new SceneGraph(basePass);
@@ -100,18 +83,6 @@ public class JsgDeferredRenderer implements FpsRenderer {
         DepthBuffer baseDepth = basePass.getRenderTarget().getDepthBuffer();
         lightManager = new LightManager(
                 baseTexture, baseDepth, lightTexture, view, new Point2f(basew, baseh));
-        lightManager.createPointLight(new Vec3(1, 0, 1), new Vec3(14, 5, 0), 10);
-        lightManager.createPointLight(new Vec3(0, 1, 0), new Vec3(-14, 5, 0), 10);
-        Random rand = new Random(988231);
-        for (float y = -100; y < 100; y += 20) {
-            for (float x = -100; x < 100; x += 20) {
-                Vec3 pos = new Vec3(x, 3, y);
-                Vec3 color = new Vec3(rand.nextFloat(), rand.nextFloat(), rand.nextFloat())
-                        .scale_(0.8f).add(0.2, 0.2, 0.2);
-                lightManager.createPointLight(color, pos, 15);
-            }
-        }
-        lightManager.createHemisphereLight(new Vec3(0.35, 0.3, 0.4), new Vec3(), new Vec3(-1, 0.25f, 0));
 
 		FinalPass.createFinalPass(lightTexture, rgbaTexture, mixedTexture, baseDepth, basew, baseh, view);
 		skyboxPass = new SkyboxPass(view, mixedTexture, baseDepth);
@@ -125,7 +96,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
         hud = new JsgHud();
         sceneGraph.addRenderPass(hud.renderPass);
 
-		bulletModels = createModels(LevelData.MAX_BULLETS, FinalPass.transparentPass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
+		bulletModels = createModels(LevelPacket.MAX_BULLETS, FinalPass.transparentPass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
 		for (TreeNode bulletModel : bulletModels) {
 			for (Shape bulletShape : bulletModel.getAllShapesInTree()) {
 				bulletShape.setSortOrder(SortOrder.BACK_TO_FRONT);
@@ -135,11 +106,9 @@ public class JsgDeferredRenderer implements FpsRenderer {
 				bulletShape.getState().setBlendSrcFunc(BlendSrcFunc.ONE);
 				bulletShape.getState().setBlendDstFunc(BlendDstFunc.ONE);
 				bulletShape.getState().setDepthWriteEnabled(false);
-
-				System.out.println("AAAAAAAAAA change bullet");
+				//System.out.println("AAAAAAAAAA change bullet");
 			}
 		}
-
 
         // create a renderer that renders the scenegraph
         renderer = new Renderer(sceneGraph);
@@ -168,23 +137,9 @@ public class JsgDeferredRenderer implements FpsRenderer {
     }
 
     public void render(Level l, int localPlayerIdx) {
-        if (levelGenerator.nodesChanged) {
-            basePass.getRootNode().removeChild(replaceableNode);
-            for (TreeNode child : replaceableNode.getChildren()) {
-                replaceableNode.removeChild(child);
-            }
-            replaceableNode = new TreeNode();
-            basePass.getRootNode().addChild(replaceableNode);
+        deferredSystem.update();
 
-            for (TreeNode node : levelGenerator.get()) {
-                for (Shape shape : node.getAllShapesInTree()) {
-                    shape.getState().setShader(shader);
-                }
-                replaceableNode.addChild(node);
-            }
-        }
-
-        LevelData level = l.levelData;
+        LevelPacket level = l.levelData;
 
         float timeSec = (System.currentTimeMillis() - startTimeMillis) / 1000f;
 
@@ -192,7 +147,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
             view.setCameraMatrix(l.editorNavigation.viewTransform);
         } else if(localPlayerIdx >= 0 && !useTopView) {
             //PlayerData player = level.players[localPlayerIdx];
-            PlayerData player = l.predictedState.getCurrentState();
+            PlayerPacket player = l.predictedState.getCurrentState();
             view.setCameraMatrix(player.getViewTransform());
         } else {
             float angle = level.serverTimeMillis / 3000f;
@@ -217,7 +172,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
 
     private void renderPlayers(Level level, int localPlayerIdx) {
         for (int i = 0; i < playerModels.length; i++) {
-            PlayerData player = level.interpolatedState.get(i).getCurrentState();
+            PlayerPacket player = level.interpolatedState.get(i).getCurrentState();
             boolean isLocal = (i == localPlayerIdx);
             boolean visible = player.isConnected() && (!isLocal || useTopView);
             for (Shape shape : playerModels[i].getAllShapesInTree()) {
@@ -238,15 +193,15 @@ public class JsgDeferredRenderer implements FpsRenderer {
     }
 
     private void renderBullets(Level level) {
-        LevelData levelData = level.levelData;
+        LevelPacket levelData = level.levelData;
         for (int i = 0; i < levelData.bullets.length; i++) {
-            BulletData bullet = levelData.bullets[i];
+            BulletPacket bullet = levelData.bullets[i];
             for (Shape shape : bulletModels[i].getAllShapesInTree()) {
                 shape.setVisible(bullet.alive);
             }
             if (bullet.alive) {
                 long time = level.interpolatedServerState.getCurrentState().serverTime;
-                Vec3 bulletPos = FpsServer.getPositionAtTime(bullet, time);
+                Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, time);
                 bulletModels[i].setTransform(new Mat4().setTranslation_(bulletPos));
             }
         }

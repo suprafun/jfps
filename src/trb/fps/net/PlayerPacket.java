@@ -1,16 +1,17 @@
-package trb.fps.model;
+package trb.fps.net;
 
 import trb.fps.PlayerUpdator;
 import trb.fps.predict.TimedState;
 import trb.jsg.util.Mat4;
 import trb.jsg.util.Vec3;
 
-public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
+public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
 
     private static final float SPEED = 10f;
 
     private boolean connected = false;
-    private int index = -1;
+    private int id = -1;
+    private int slotIdx = -1;
     private long time = 0;
     private String name = "";
     private float[] position = {0, 0, 0};
@@ -20,13 +21,14 @@ public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
     private int kills = 0;
     private int deaths = 0;
 
-    public PlayerData() {
+    public PlayerPacket() {
 
     }
 
-    public PlayerData(PlayerData copy) {
+    public PlayerPacket(PlayerPacket copy) {
         this.connected = copy.connected;
-        this.index = copy.index;
+        this.id = copy.id;
+        this.slotIdx = copy.slotIdx;
         this.time = copy.time;
         this.name = copy.name;
         this.position = copy.position;
@@ -37,22 +39,28 @@ public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
         this.deaths = copy.deaths;
     }
 
-    public PlayerData(int index) {
-        this.index = index;
+    public PlayerPacket(int id, int slotIdx, String name) {
+        this.id = id;
+        this.slotIdx = slotIdx;
+        this.name = name;
     }
 
     public boolean isConnected() {
         return connected;
     }
 
-    public PlayerData setConnected(boolean connected) {
-        PlayerData d = new PlayerData(this);
+    public PlayerPacket setConnected(boolean connected) {
+        PlayerPacket d = new PlayerPacket(this);
         d.connected = connected;
         return d;
     }
 
-    public int getIndex() {
-        return index;
+    public int getId() {
+        return id;
+    }
+
+    public int getSlotIdx() {
+        return slotIdx;
     }
 
     public String getName() {
@@ -63,8 +71,8 @@ public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
         return new Vec3(position);
     }
 
-    public PlayerData setPosition(Vec3 translation) {
-        PlayerData d = new PlayerData(this);
+    public PlayerPacket setPosition(Vec3 translation) {
+        PlayerPacket d = new PlayerPacket(this);
         d.position = translation.toFloats();
         return d;
     }
@@ -73,8 +81,14 @@ public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
         return health;
     }
 
-    public PlayerData takeDamage(int damage) {
-        PlayerData d = new PlayerData(this);
+    public PlayerPacket setHealth(int newHealth) {
+        PlayerPacket d = new PlayerPacket(this);
+        d.health = newHealth;
+        return d;
+    }
+
+    public PlayerPacket takeDamage(int damage) {
+        PlayerPacket d = new PlayerPacket(this);
         d.health -= damage;
         return d;
     }
@@ -83,8 +97,14 @@ public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
         return kills;
     }
 
-    public PlayerData incKills() {
-        PlayerData d = new PlayerData(this);
+    public PlayerPacket setKills(int newKills) {
+        PlayerPacket d = new PlayerPacket(this);
+        d.kills = newKills;
+        return d;
+    }
+
+    public PlayerPacket incKills() {
+        PlayerPacket d = new PlayerPacket(this);
         d.kills++;
         return d;
     }
@@ -93,8 +113,14 @@ public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
         return deaths;
     }
 
-    public PlayerData incDeaths() {
-        PlayerData d = new PlayerData(this);
+    public PlayerPacket setDeaths(int newDeaths) {
+        PlayerPacket d = new PlayerPacket(this);
+        d.deaths = newDeaths;
+        return d;
+    }
+
+    public PlayerPacket incDeaths() {
+        PlayerPacket d = new PlayerPacket(this);
         d.deaths++;
         return d;
     }
@@ -141,17 +167,16 @@ public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
         health = 0;
     }
 
-    public void respawn() {
-        position[0] = -50 + (float) Math.random() * 100f;
-        position[2] = -50 + (float) Math.random() * 100f;
-        headingRad = 0f;
+    public void respawn(Mat4 location) {
+        position = location.getTranslation().toFloats();
+        headingRad = location.getEuler().y;
         tiltRad = 0f;
         health = 100;
     }
 
     /** TimedState */
-    public PlayerData setTime(long time) {
-        PlayerData d = new PlayerData(this);
+    public PlayerPacket setTime(long time) {
+        PlayerPacket d = new PlayerPacket(this);
         d.time = time;
         return d;
     }
@@ -162,18 +187,18 @@ public class PlayerData implements TimedState<PlayerData, PlayerUpdator> {
     }
 
     /** TimedState */
-    public boolean withinPredictThreshold(PlayerData state) {
+    public boolean withinPredictThreshold(PlayerPacket state) {
         return getPosition().distance(state.getPosition()) < 0.2f;
     }
 
     /** TimedState */
-    public PlayerData update(PlayerUpdator playerUpdator) {
+    public PlayerPacket update(PlayerUpdator playerUpdator) {
         return playerUpdator.update(this);
     }
 
     /** TimedState */
-    public PlayerData interpolate(float t, PlayerData s2) {
-        PlayerData d = new PlayerData(s2);
+    public PlayerPacket interpolate(float t, PlayerPacket s2) {
+        PlayerPacket d = new PlayerPacket(s2);
         d.time = (long) (time + t * (s2.time - time));
         d.position = getPosition().interpolate_(s2.getPosition(), t).toFloats();
         return d;

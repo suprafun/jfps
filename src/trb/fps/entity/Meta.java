@@ -1,5 +1,4 @@
-
-package trb.fps.editor;
+package trb.fps.entity;
 
 import trb.fps.property.Property;
 

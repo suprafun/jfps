@@ -1,22 +1,3 @@
-/*
- * HALDEN VR PLATFORM
- *
- * RADIATION MODULE
- *
- * $RCSfile: $
- *
- * Author :
- * Date   :
- * Version: $Revision: $ ($Date: $)
- *
- * (c) 2000-2011 Halden Virtual Reality Centre <http://www.ife.no/vr/>,
- * Institutt for energiteknikk. All rights reserved.
- *
- * This code is the property of Halden VR Centre <vr-info@hrp.no> and may
- * only be used in accordance with the terms of the license agreement
- * granted.
- */
-
 package trb.fps.jsg;
 
 import java.awt.AlphaComposite;
@@ -26,16 +7,15 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import org.lwjgl.opengl.Display;
-import trb.fps.model.LevelData;
-import trb.fps.model.PlayerData;
+import trb.fps.net.LevelPacket;
+import trb.fps.net.PlayerPacket;
 import trb.jsg.RenderPass;
 import trb.jsg.View;
 
-/**
- *
- * @author tomrbryn
- */
 public class JsgHud {
 
     public RenderPass renderPass;
@@ -79,7 +59,9 @@ public class JsgHud {
         return crosshair;
     }
 
-    private void renderImage(BufferedImage image, LevelData level, int localPlayerIdx) {
+    private void renderImage(BufferedImage image, LevelPacket level, int localPlayerIdx) {
+        List<PlayerPacket> sortedPlayers = getPlayersSortedByKills(level);
+
         Graphics2D g = (Graphics2D) image.getGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Composite originalComposite = g.getComposite();
@@ -87,8 +69,8 @@ public class JsgHud {
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
         g.setComposite(originalComposite);
         g.setFont(font);
-        for (int i=0; i<level.players.length; i++) {
-            PlayerData p = level.players[i];
+        for (int i=0; i<sortedPlayers.size(); i++) {
+            PlayerPacket p = sortedPlayers.get(i);
             if (p.isConnected()) {
                 int y = 20 + i * 20;
                 if (i == localPlayerIdx) {
@@ -106,17 +88,39 @@ public class JsgHud {
             }
         }
 
-        if (level.players[localPlayerIdx].getHealth() <= 0) {
-            int y = 30 + level.players.length * 20;
+
+        if (level.isGameOver()) {
+            int y = 30 + (level.players.length+1) * 20;
             g.setPaint(new Color(0, 0, 0, 100));
             g.fillRect(3, y - 13, 256, 16);
 
             g.setPaint(new Color(0xffffffff, true));
-            g.drawString("Press ENTER to respawn", 3, y);
+            g.drawString("Game Over", 3, y);
+        } else {
+            if (level.players[localPlayerIdx].getHealth() <= 0) {
+                int y = 30 + level.players.length * 20;
+                g.setPaint(new Color(0, 0, 0, 100));
+                g.fillRect(3, y - 13, 256, 16);
+
+                g.setPaint(new Color(0xffffffff, true));
+                g.drawString("Press ENTER to respawn", 3, y);
+            }
         }
     }
 
-    public void render(LevelData level, int localPlayerIdx) {
+    private List<PlayerPacket> getPlayersSortedByKills(LevelPacket level) {
+        List<PlayerPacket> connectedPlayers = level.getConnectedPlayers();
+        Collections.sort(connectedPlayers, new Comparator<PlayerPacket>() {
+
+            public int compare(PlayerPacket o1, PlayerPacket o2) {
+                return o1.getKills() - o2.getKills();
+            }
+        });
+
+        return connectedPlayers;
+    }
+
+    public void render(LevelPacket level, int localPlayerIdx) {
         renderImage(quad.image, level, localPlayerIdx);
         quad.copyImageToTexture();
     }

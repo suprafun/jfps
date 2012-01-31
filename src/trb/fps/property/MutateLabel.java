@@ -49,4 +49,8 @@ public class MutateLabel {
     public JLabel get() {
         return label;
     }
+
+    public static void main(String[] args) {
+        System.out.println("" + Number.class.isAssignableFrom(Float.class));
+    }
 }
