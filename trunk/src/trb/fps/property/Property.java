@@ -7,16 +7,20 @@ import java.util.Map;
 
 public class Property<T> {
 
+    public static long changeCounter = 0;
+
     public final String name;
     public final Class type;
     public T value;
     public final ListenerList<PropertyChangeListener> listeners = new ListenerList();
     private final Map<Class, Object> userData = new HashMap();
+    public long lastChange = -1;
 
     public Property(String name, Class type, T initialValue) {
         this.name = name;
         this.type = type;
-        this.value = initialValue;        
+        this.value = initialValue;
+        lastChange = changeCounter++;
     }
 
     public String getName() {
@@ -30,6 +34,7 @@ public class Property<T> {
     public void set(T v) {
         T old = get();
         this.value = v;
+        lastChange = changeCounter++;
         notifyListeners(new PropertyChangeEvent(this, getName(), old, get()));
     }
 

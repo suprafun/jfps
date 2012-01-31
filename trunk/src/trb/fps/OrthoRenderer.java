@@ -1,12 +1,15 @@
 package trb.fps;
 
+import trb.fps.client.Level;
+import trb.fps.client.FpsRenderer;
 import java.awt.Color;
 import javax.vecmath.Color3f;
-import trb.fps.model.LevelData;
-import trb.fps.model.PlayerData;
+import trb.fps.net.LevelPacket;
+import trb.fps.net.PlayerPacket;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import trb.fps.model.BulletData;
+import trb.fps.net.BulletPacket;
+import trb.fps.server.GameLogic;
 import trb.jsg.util.Vec3;
 
 public class OrthoRenderer implements FpsRenderer {
@@ -15,7 +18,7 @@ public class OrthoRenderer implements FpsRenderer {
 	}
 
 	public void render(Level l, int localPlayerIdx) {
-        LevelData level = l.levelData;
+        LevelPacket level = l.levelData;
 
         // init OpenGL
         GL11.glMatrixMode(GL11.GL_PROJECTION);
@@ -27,15 +30,15 @@ public class OrthoRenderer implements FpsRenderer {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		GL11.glColor3f(0.5f, 0.5f, 1.0f);
 
-        for (PlayerData p : level.players) {
+        for (PlayerPacket p : level.players) {
             if (p.isConnected()) {
                 drawPlayer(p);
             }
         }
 
-        for (BulletData bullet : level.bullets) {
+        for (BulletPacket bullet : level.bullets) {
             if (bullet.alive) {
-                Vec3 bulletPos = FpsServer.getPositionAtTime(bullet, level.serverTimeMillis);
+                Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, level.serverTimeMillis);
                 fillRect(Color.yellow, bulletPos.x-5, bulletPos.z-5, 10, 10);
             }
         }
@@ -43,7 +46,7 @@ public class OrthoRenderer implements FpsRenderer {
 		Display.update();
 	}
 
-    private void drawPlayer(PlayerData p) {
+    private void drawPlayer(PlayerPacket p) {
         Vec3 pos = p.getPosition();
         Vec3 target = new Vec3().scaleAdd_(10, p.getHeadingVector(), pos);
 
@@ -56,7 +59,7 @@ public class OrthoRenderer implements FpsRenderer {
         drawPlayerHealthBar(p);
     }
 
-    private void drawPlayerHealthBar(PlayerData p) {
+    private void drawPlayerHealthBar(PlayerPacket p) {
         Vec3 pos = p.getPosition();
         fillRect(p.getHealth() > 0 ? Color.WHITE : Color.RED, pos.x - 51, pos.z - 21, 102, 12);
         fillRect(Color.GREEN, pos.x - 50, pos.z - 20, 100 * p.getHealth() / 100, 10);

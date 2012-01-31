@@ -1,11 +1,18 @@
 package trb.fps.editor;
 
+import trb.fps.entity.Entity;
+import trb.fps.entity.EntityList;
+import trb.fps.entity.Box;
+import trb.fps.entity.PointLightComp;
+import trb.fps.entity.IO;
+import trb.fps.entity.Meta;
+import trb.fps.entity.HemisphereLightComp;
+import trb.fps.entity.Transform;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
@@ -20,23 +27,28 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import net.miginfocom.swing.MigLayout;
-import trb.fps.LevelGenerator;
+import trb.fps.client.FpsClient;
+import trb.fps.server.FpsServer;
+import trb.fps.entity.DeferredSystem;
+import trb.fps.entity.SpawnPoint;
 import trb.fps.property.PropertyListPanel;
-import trb.jsg.TreeNode;
 import trb.xml.XMLElement;
 import trb.xml.XMLElementWriter;
 
 public final class LevelEditor {
 
-    public JFrame frame = new JFrame("Level editor");
-    private final LevelGenerator levelGenerator;
+    public final JFrame frame = new JFrame("Level editor");
+    private final FpsClient client;
+    private final FpsServer server;
 
     public EntityList entities = new EntityList();
     private final JPanel propertyPanel = new JPanel(new BorderLayout());
     private final JList list = new JList();
+    //private DeferredSystem deferredSystem;
 
-    public LevelEditor(LevelGenerator levelGenerator) {
-        this.levelGenerator = levelGenerator;
+    public LevelEditor(FpsServer server, FpsClient client) {
+        this.server = server;
+        this.client = client;
         File currentFile = getCurrentFile();
         if (currentFile != null && currentFile.exists()) {
             open(currentFile);
@@ -51,15 +63,9 @@ public final class LevelEditor {
         });
         JScrollPane listPane = new JScrollPane(list);
 
-        JPanel panel = new JPanel(new MigLayout("fill", "", "[50%][50%][0%]"));
+        JPanel panel = new JPanel(new MigLayout("fill", "[10%][90%]", "[50%][50%][0%]"));
         panel.add(listPane, "grow, span 3, wrap");
         panel.add(propertyPanel, "grow, span 3, wrap");
-        panel.add(new JButton(new AbstractAction("+") {
-
-            public void actionPerformed(ActionEvent e) {
-                addBox();
-            }
-        }), "growx");
         panel.add(new JButton(new AbstractAction("-") {
 
             public void actionPerformed(ActionEvent e) {
@@ -81,21 +87,15 @@ public final class LevelEditor {
         frame.setVisible(true);
     }
 
-    private void addBox() {
-        Entity selection = Entity.create(Meta.class, Transform.class, Box.class);
-        entities.add(selection);
-        updateBoxList(selection);
-    }
-
     private void removeSelection() {
         Object value = list.getSelectedValue();
         if (value instanceof Entity) {
             entities.remove((Entity) value);
-            updateBoxList(null);
+            updateSwingList(null);
         }
     }
 
-    private void updateBoxList(final Object selection) {
+    private void updateSwingList(final Object selection) {
         SwingUtilities.invokeLater(new Runnable() {
 
             public void run() {
@@ -132,13 +132,8 @@ public final class LevelEditor {
     }
 
     private void updateLevelGenerator() {
-        if (levelGenerator != null) {
-            ArrayList<TreeNode> nodes = new ArrayList();
-            for (Box box : entities.getComponents(Box.class)) {
-                nodes.add(box.getNode());
-            }
-            levelGenerator.replace(nodes);
-        }
+        //client.jsgDeferredRenderer.deferredSystem.recreate(entities);
+        server.changeLevel(entities);
     }
 
 
@@ -170,9 +165,8 @@ public final class LevelEditor {
 
         try {
             XMLElement level = new XMLElement(new FileInputStream(file)).getFirstChildWithName("level");
-            System.out.println(level);
             entities = new EntityList(IO.readLevel(level));
-            updateBoxList(null);
+            updateSwingList(null);
             setCurrentFile(file);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -184,8 +178,8 @@ public final class LevelEditor {
             return;
         }
 
-        XMLElement level = XMLElement.createFromName("level");
-        IO.writeLevel(level, entities.getAll());
+        XMLElement level = IO.writeLevel(entities.getAll());
+        
         try {
             XMLElementWriter.write(new PrintWriter(file), level);
             setCurrentFile(file);
@@ -217,7 +211,32 @@ public final class LevelEditor {
         return file;
     }
 
-    public static void main(String[] args) {
-        new LevelEditor(null);
+    public void addBox() {
+        Entity selection = Entity.create(Meta.class, Transform.class, Box.class);
+        selection.getComponent(Meta.class).name.set("Box");
+        entities.add(selection);
+        updateSwingList(selection);
+    }
+
+    public void createPointLight() {
+        Entity selection = Entity.create(Meta.class, Transform.class, PointLightComp.class);
+        selection.getComponent(Meta.class).name.set("PointLight");
+        entities.add(selection);
+        updateSwingList(selection);
+    }
+
+    public void createHemisphereLight() {
+        Entity selection = Entity.create(Meta.class, Transform.class, HemisphereLightComp.class);
+        selection.getComponent(Meta.class).name.set("HemisphereLight");
+        entities.add(selection);
+        updateSwingList(selection);
+    }
+
+    public void createSpawnPoint() {
+        Entity selection = Entity.create(Meta.class, Transform.class, Box.class, SpawnPoint.class);
+        selection.getComponent(Meta.class).name.set("SpawnPoint");
+        selection.getComponent(Box.class).height.set(2f);
+        entities.add(selection);
+        updateSwingList(selection);
     }
 }

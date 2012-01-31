@@ -4,14 +4,20 @@ import com.bulletphysics.collision.broadphase.AxisSweep3;
 import com.bulletphysics.collision.broadphase.BroadphaseInterface;
 import com.bulletphysics.collision.dispatch.CollisionDispatcher;
 import com.bulletphysics.collision.dispatch.CollisionObject;
+import com.bulletphysics.collision.dispatch.CollisionWorld.ClosestRayResultCallback;
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
+import java.util.HashMap;
+import java.util.Map;
 import javax.vecmath.Vector3f;
-import trb.fps.LevelGenerator;
+import trb.fps.entity.Box;
+import trb.fps.entity.DeferredSystem;
+import trb.fps.entity.EntityList;
+import trb.fps.entity.SpawnPoint;
 import trb.jsg.Shape;
 import trb.jsg.TreeNode;
 import trb.jsg.util.Vec3;
@@ -22,46 +28,46 @@ import trb.jsg.util.Vec3;
  */
 public class PhysicsLevel {
 
-    static PhysicsLevel instance;
-    static KinematicCharacter character;
-
-    public static synchronized Vec3 move(Vec3 from, Vec3 to) {
-        if (instance == null) {
-            instance = new PhysicsLevel();
-            character = instance.addCharacter();
-        }
-
-        character.setFromTo(from, to);
-        instance.nextFrame(1/30f);
-        return character.getTransform().getTranslation();
-    }
+    public static final Object globalLock = new Object();
 
     // contains all the physics objects and performs the simulation
-    public DynamicsWorld dynamicsWorld = null;
+    public final DynamicsWorld dynamicsWorld;
     BroadphaseInterface broadphase;
+    private final KinematicCharacter character;
 
     /**
      * Creates dynamicsWorld and adds RigidBodies
      */
-    public PhysicsLevel() {
+    public PhysicsLevel(EntityList entities) {
         dynamicsWorld = createDynamicsWorld();
         dynamicsWorld.setGravity(new Vector3f(0f, -10f, 0f));
+        character = new KinematicCharacter(this);
 
-        // add shape to the renderpass tree
-        for (TreeNode node : new LevelGenerator().get()) {
-            addAsConvexHull(node, false);
+        Map<TreeNode, Box> nodeBoxMap = new HashMap();
+        TreeNode treeNode = DeferredSystem.createGeometry(entities, null, nodeBoxMap);
+        treeNode.updateTree(true);
+        for (TreeNode child : treeNode.getChildren()) {
+            Box box = nodeBoxMap.get(child);
+            if (box.getComponent(SpawnPoint.class) == null) {
+                addAsConvexHull(child, false);
+            }
         }
     }
 
-    public ConvexHull addAsConvexHull(TreeNode node, boolean isDynamic) {
+    private ConvexHull addAsConvexHull(TreeNode node, boolean isDynamic) {
         Shape shape = node.getShape(0);
         ConvexHull convexHull = new ConvexHull(shape, isDynamic);
         dynamicsWorld.addRigidBody(convexHull.getRigidBody());
         return convexHull;
     }
 
-    public KinematicCharacter addCharacter() {
-        return new KinematicCharacter(this);
+    public Vec3 move(Vec3 from, Vec3 to) {
+        synchronized (globalLock) {
+            character.setFromTo(from, to);
+            nextFrame(1 / 30f);
+            Vec3 pos = character.getTransform().getTranslation();
+            return pos;
+        }
     }
 
     /**
@@ -141,5 +147,11 @@ public class PhysicsLevel {
         // will increment simulation in 1/60 second steps and interpolate
         // between the two last steps to get smooth animation
         dynamicsWorld.stepSimulation(frameTimeSec);
+    }
+
+    public void rayTest(Vec3 p1, Vec3 p2, ClosestRayResultCallback rayCallback) {
+        synchronized (globalLock) {
+            dynamicsWorld.rayTest(p1, p2, rayCallback);
+        }
     }
 }

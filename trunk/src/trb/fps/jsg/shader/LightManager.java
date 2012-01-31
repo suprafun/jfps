@@ -91,4 +91,10 @@ public class LightManager {
             light.updateUniforms(view);
         }
     }
+
+    public void clear() {
+        renderPass.getRootNode().removeAllShapes();
+        pointLights.clear();
+        hemisphereLights.clear();
+    }
 }

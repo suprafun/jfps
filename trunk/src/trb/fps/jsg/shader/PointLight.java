@@ -21,8 +21,9 @@ import trb.jsg.util.geometry.Box;
 public class PointLight {
 
     public final Vec3 positionWorld = new Vec3();
-    public float radius;
+    private float radius;
     private final Shader shader;
+    private final Uniform radiusUniform;
     private final Uniform colorUniform;
     private final Uniform positionViewSpaceUniform;
     private final Uniform farClipDistanceUniform;
@@ -35,12 +36,13 @@ public class PointLight {
         this.radius = radius;
         this.shader = new Shader(shaderProgram);
 
-        shader.putUniform(new Uniform("radius", Uniform.Type.FLOAT, radius));
+        radiusUniform = new Uniform("radius", Uniform.Type.FLOAT, radius);
         colorUniform = new Uniform("color", Uniform.Type.VEC3, color.toFloats());
         farClipDistanceUniform = new Uniform("farClipDistance", Uniform.Type.FLOAT, 1f);
         positionViewSpaceUniform = new Uniform("position", Uniform.Type.VEC3, 0f, 0f, 0f);
         shader.putUniform(new Uniform("bufferSize", Uniform.Type.VEC2, (float) texture.getWidth(), (float) texture.getHeight()));
 
+        shader.putUniform(radiusUniform);
         shader.putUniform(colorUniform);
         shader.putUniform(farClipDistanceUniform);
         shader.putUniform(positionViewSpaceUniform);
@@ -74,6 +76,13 @@ public class PointLight {
 
     public void setColor(Vec3 color) {
         colorUniform.setFloats(color.toFloats());
+    }
+
+    public void setRadius(float radius) {
+        if (this.radius != radius) {
+            this.radius = radius;
+            radiusUniform.setFloats(radius);
+        }
     }
 
     public void updateUniforms(View view) {

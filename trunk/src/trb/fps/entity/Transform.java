@@ -1,7 +1,8 @@
-package trb.fps.editor;
+package trb.fps.entity;
 
 import trb.fps.property.Property;
 import trb.jsg.util.Mat4;
+import trb.jsg.util.Vec3;
 
 public class Transform extends Component {
     public final Property<Float> positionx = add("PositionX", 0f);
@@ -13,7 +14,18 @@ public class Transform extends Component {
 
     public Mat4 get() {
         return new Mat4()
-                .rotateEulerDeg(rotationx.get(), rotationy.get(), rotationz.get())
-                .translate(positionx.get(), positiony.get(), positionz.get());
+                .setEulerDeg(new Vec3(rotationx.get(), rotationy.get(), rotationz.get()))
+                .setTranslation_(new Vec3(positionx.get(), positiony.get(), positionz.get()));
+    }
+
+    public void set(Mat4 mat) {
+        Vec3 pos = mat.getTranslation();
+        positionx.set(pos.x);
+        positiony.set(pos.y);
+        positionz.set(pos.z);
+        Vec3 eulerDeg = mat.getEulerDeg();
+        rotationx.set(eulerDeg.x);
+        rotationy.set(eulerDeg.y);
+        rotationz.set(eulerDeg.z);
     }
 }

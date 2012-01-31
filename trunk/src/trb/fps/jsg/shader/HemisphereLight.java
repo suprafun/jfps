@@ -1,5 +1,6 @@
 package trb.fps.jsg.shader;
 
+import java.awt.Color;
 import trb.jsg.Shader;
 import trb.jsg.ShaderProgram;
 import trb.jsg.Shape;
@@ -17,7 +18,7 @@ import trb.jsg.util.Vec3;
 
 public class HemisphereLight {
 
-    private final Vec3 directionWorld = new Vec3();
+    public final Vec3 directionWorld = new Vec3();
     private final Shader shader;
     private final Uniform skyColorUniform;
     private final Uniform groundColorUniform;
@@ -50,6 +51,15 @@ public class HemisphereLight {
         shape.getState().setDepthWriteEnabled(false);
         shape.getState().setStencilTestEnabled(true);
         shape.getState().setStencilFunc(new StencilFuncParams(StencilFunc.EQUAL, 1, 1));
+    }
+
+    public void setColors(Color skyColor, Color groundColor) {
+        setColors(new Vec3(skyColor), new Vec3(groundColor));
+    }
+
+    public void setColors(Vec3 skyColor, Vec3 groundColor) {
+        skyColorUniform.setFloats(skyColor.toFloats());
+        groundColorUniform.setFloats(groundColor.toFloats());
     }
 
     public void updateUniforms(View view) {
