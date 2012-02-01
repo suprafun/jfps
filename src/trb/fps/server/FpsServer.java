@@ -1,6 +1,5 @@
 package trb.fps.server;
 
-import com.esotericsoftware.kryo.Kryo;
 import trb.fps.net.HandshakePacket;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -47,6 +46,7 @@ public class FpsServer {
                 gameLogic.update();
                 for (Connection connection : server.getConnections()) {
                     connection.sendTCP(gameLogic.level);
+                    //System.out.println("" + connection.sendTCP(gameLogic.level));
                 }
                 server.update(0);
                 Thread.sleep(100);

@@ -1,6 +1,7 @@
 package trb.fps.jsg.shader;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import trb.jsg.Shader;
@@ -65,16 +66,24 @@ public class NormalMapping {
         shader.putUniform(new Uniform("normalmap", Type.INT, new int[]{1}));
         BufferedImage textureImage = null;
         BufferedImage normalImage = null;
+        BufferedImage specularImage = null;
         try {
-            textureImage = ImageIO.read(NormalMapping.class.getResource("texturemap.jpg"));
-            normalImage = ImageIO.read(NormalMapping.class.getResource("normalmap.jpg"));
+//            textureImage = ImageIO.read(NormalMapping.class.getResource("texturemap.jpg"));
+//            normalImage = ImageIO.read(NormalMapping.class.getResource("normalmap.jpg"));
+            String name = "bricks_008_";
+//            String name = "Wood_White_Cedar_";
+//            String name = "concrete_011_";
+//            String name = "Autumn_Leaves_";
+            textureImage = ImageIO.read(new File("./data/textures/" +name +"Diffuse.png"));
+            normalImage = ImageIO.read(new File("./data/textures/" + name + "Normal.png"));
+            specularImage = ImageIO.read(new File("./data/textures/" + name + "Specular.png"));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        texturemap = NormalMap.createNormalMapTexture(textureImage);
+        texturemap = NormalMap.createNormalMapTexture(textureImage, specularImage);
         texturemap.setMagFilter(MagFilter.LINEAR);
         texturemap.setMinFilter(MinFilter.LINEAR_MIPMAP_NEAREST);
-        normalmap = NormalMap.createNormalMapTexture(normalImage);
+        normalmap = NormalMap.createNormalMapTexture(normalImage, null);
         normalmap.setMagFilter(MagFilter.LINEAR);
         normalmap.setMinFilter(MinFilter.LINEAR_MIPMAP_NEAREST);
     }
