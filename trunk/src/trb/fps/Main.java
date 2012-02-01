@@ -25,8 +25,8 @@ public class Main {
                 server = startServer();
                 server.gameLogic.level.killLimit = (Integer) connectPanel.killLimit.getValue();
                 if (connectPanel.startEditor.isSelected()) {
-                    LevelEditor editor = new LevelEditor(server, client);
-                    server.changeLevel(editor.entities);
+                    LevelEditor.instance = new LevelEditor(server, client);
+                    server.changeLevel(LevelEditor.instance.entities);
                 }
             }
             client.gameLoop(connectPanel.nameTxt.getText());
@@ -49,6 +49,7 @@ public class Main {
         kryo.register(PlayerPacket[].class);
         kryo.register(BulletPacket.class);
         kryo.register(BulletPacket[].class);
+        //kryo.register(LevelPacket.class, new DeltaCompressor(kryo, kryo.newSerializer(LevelPacket.class)));
         kryo.register(LevelPacket.class);
         kryo.register(HandshakePacket.class);
         kryo.register(ArrayList.class);

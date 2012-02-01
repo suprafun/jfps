@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import trb.fps.client.FpsRenderer;
 import trb.fps.client.Level;
+import trb.fps.editor.LevelEditor;
 import trb.fps.entity.DeferredSystem;
 import trb.fps.jsg.shader.BasePass;
 import trb.fps.jsg.shader.FinalPass;
@@ -93,6 +94,10 @@ public class JsgDeferredRenderer implements FpsRenderer {
 		sceneGraph.addRenderPass(skyboxPass.renderPass);
 		sceneGraph.addRenderPass(FinalPass.toScreenPass);
 
+        if (LevelEditor.instance != null) {
+            FinalPass.transparentPass.getRootNode().addChild(LevelEditor.instance.selectionVisualisation.treeNode);
+        }
+
         hud = new JsgHud();
         sceneGraph.addRenderPass(hud.renderPass);
 
@@ -152,6 +157,10 @@ public class JsgDeferredRenderer implements FpsRenderer {
         } else {
             float angle = level.serverTimeMillis / 3000f;
             view.setCameraMatrix(new Mat4().lookAt(new Vec3(Math.cos(angle) * 50, 15, Math.sin(angle) * 50), new Vec3(0, 2, 0), new Vec3(0, 1, 0)));
+        }
+
+        if (LevelEditor.instance != null) {
+            LevelEditor.instance.updateSelectionVisualisation();
         }
 
         renderPlayers(l, localPlayerIdx);

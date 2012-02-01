@@ -29,13 +29,15 @@ import javax.swing.event.ListSelectionListener;
 import net.miginfocom.swing.MigLayout;
 import trb.fps.client.FpsClient;
 import trb.fps.server.FpsServer;
-import trb.fps.entity.DeferredSystem;
 import trb.fps.entity.SpawnPoint;
 import trb.fps.property.PropertyListPanel;
+import trb.jsg.Shape;
 import trb.xml.XMLElement;
 import trb.xml.XMLElementWriter;
 
 public final class LevelEditor {
+
+    public static LevelEditor instance;
 
     public final JFrame frame = new JFrame("Level editor");
     private final FpsClient client;
@@ -44,7 +46,10 @@ public final class LevelEditor {
     public EntityList entities = new EntityList();
     private final JPanel propertyPanel = new JPanel(new BorderLayout());
     private final JList list = new JList();
+    private Entity selectedEntity = null;
     //private DeferredSystem deferredSystem;
+
+    public final SelectionViualisation selectionVisualisation = new SelectionViualisation();
 
     public LevelEditor(FpsServer server, FpsClient client) {
         this.server = server;
@@ -123,7 +128,8 @@ public final class LevelEditor {
                 propertyPanel.removeAll();
                 Object value = list.getSelectedValue();
                 if (value instanceof Entity) {
-                    propertyPanel.add(new PropertyListPanel((Entity) value).get(), BorderLayout.CENTER);
+                    selectedEntity = (Entity) value;
+                    propertyPanel.add(new PropertyListPanel(selectedEntity).get(), BorderLayout.CENTER);
                 }
                 propertyPanel.revalidate();
                 propertyPanel.repaint();
@@ -132,7 +138,7 @@ public final class LevelEditor {
     }
 
     private void updateLevelGenerator() {
-        //client.jsgDeferredRenderer.deferredSystem.recreate(entities);
+        client.jsgDeferredRenderer.deferredSystem.recreate(entities);
         server.changeLevel(entities);
     }
 
@@ -238,5 +244,17 @@ public final class LevelEditor {
         selection.getComponent(Box.class).height.set(2f);
         entities.add(selection);
         updateSwingList(selection);
+    }
+
+    public void updateSelectionVisualisation() {
+        Entity selection = selectedEntity;
+        Shape shape = client.jsgDeferredRenderer.deferredSystem.getBounds(selection);
+        if (shape != null) {
+            selectionVisualisation.selectionShape.setVisible(true);
+            selectionVisualisation.selectionShape.setModelMatrix(shape.getModelMatrix());
+            selectionVisualisation.selectionShape.setVertexData(shape.getVertexData());
+        } else {
+            selectionVisualisation.selectionShape.setVisible(false);
+        }
     }
 }

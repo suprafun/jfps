@@ -19,6 +19,7 @@ import trb.fps.Input;
 import trb.fps.Main;
 import trb.fps.OrthoRenderer;
 import trb.fps.PlayerUpdator;
+import trb.fps.editor.LevelEditor;
 import trb.fps.entity.EntityList;
 import trb.fps.entity.IO;
 import trb.fps.input.InputManager;
@@ -66,7 +67,9 @@ public class FpsClient {
                             System.out.println(xml.toString());
                             EntityList entities = new EntityList(IO.readLevel(xml.getFirstChildWithName("level")));
                             level.changeLevel(entities);
-                            jsgDeferredRenderer.deferredSystem.recreate(entities);
+                            if (LevelEditor.instance == null) {
+                                jsgDeferredRenderer.deferredSystem.recreate(entities);
+                            }
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }

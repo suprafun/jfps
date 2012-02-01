@@ -27,8 +27,8 @@ public class PointLight {
     private final Uniform colorUniform;
     private final Uniform positionViewSpaceUniform;
     private final Uniform farClipDistanceUniform;
-    private Shape boxShape;
-    private Shape quadShape;
+    public final Shape boxShape;
+    public final Shape quadShape;
 
     public PointLight(Vec3 color, Vec3 positionWorld, float radius
             , Texture texture, Texture rgbiTexture, ShaderProgram shaderProgram, VertexData fullScreenVertexData) {

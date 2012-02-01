@@ -1,6 +1,7 @@
 package trb.fps.entity;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import trb.fps.jsg.JsgDeferredRenderer;
@@ -25,7 +26,7 @@ public class DeferredSystem {
     private TreeNode replaceableNode = new TreeNode();
     private Map<PointLightComp, PointLight> pointLightMap = new HashMap();
     private Map<HemisphereLightComp, HemisphereLight> hemisphereLightMap = new HashMap();
-    private Map<Box, TreeNode> boxMap = new HashMap();
+    public final Map<Box, TreeNode> boxNodeMap = new HashMap();
     private long updateChange;
 
     public DeferredSystem(JsgDeferredRenderer renderer) {
@@ -46,7 +47,7 @@ public class DeferredSystem {
             light.directionWorld.set(comp.getDirection());
 
         }
-        for (Entry<Box, TreeNode>  entry : boxMap.entrySet()) {
+        for (Entry<Box, TreeNode>  entry : boxNodeMap.entrySet()) {
             Box box = entry.getKey();
             TreeNode node = entry.getValue();
             Transform transform = box.getComponent(Transform.class);
@@ -100,8 +101,8 @@ public class DeferredSystem {
         for (TreeNode child : replaceableNode.getChildren()) {
             replaceableNode.removeChild(child);
         }
-        boxMap.clear();
-        replaceableNode = createGeometry(entities, boxMap, null);
+        boxNodeMap.clear();
+        replaceableNode = createGeometry(entities, boxNodeMap, null);
         renderer.basePass.getRootNode().addChild(replaceableNode);
     }
 
@@ -128,5 +129,24 @@ public class DeferredSystem {
             }
         }
         return replaceableNode;
+    }
+
+    public Shape getBounds(Entity selection) {
+        if (selection == null) {
+            return null;
+        }
+        PointLight pointLight = pointLightMap.get(selection.getComponent(PointLightComp.class));
+        if (pointLight != null) {
+            return pointLight.boxShape;
+        }
+        return getFirstShape(boxNodeMap.get(selection.getComponent(Box.class)));
+    }
+
+    private Shape getFirstShape(TreeNode treeNode) {
+        if (treeNode == null) {
+            return null;
+        }
+        List<Shape> shapes = treeNode.getAllShapesInTree();
+        return shapes.isEmpty() ? null : shapes.get(0);
     }
 }
