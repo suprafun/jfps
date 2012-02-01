@@ -1,0 +1,269 @@
+<level>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">0.0</property>
+      <property name="PositionY">-1.0</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">10.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">10.0</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">PointLight</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">0.0</property>
+      <property name="PositionY">3.427814</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.PointLightComp">
+      <property name="Color">ffffffff</property>
+      <property name="Radius">14.074833</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">HemisphereLight</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">0.0</property>
+      <property name="PositionY">0.0</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">30.0</property>
+      <property name="RotationY">90.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.HemisphereLightComp">
+      <property name="SkyColor">ff525204</property>
+      <property name="GroundColor">ff000000</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-8.287347</property>
+      <property name="PositionY">-2.357083</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">20.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">8.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">2.0</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-20.959698</property>
+      <property name="PositionY">-3.7167754</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">20.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">20.0</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">PointLight</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-14.083801</property>
+      <property name="PositionY">0.86150473</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.PointLightComp">
+      <property name="Color">ffab2e6c</property>
+      <property name="Radius">10.0</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-16.593576</property>
+      <property name="PositionY">-2.8253043</property>
+      <property name="PositionZ">-2.9159088</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">2.869566</property>
+      <property name="Height">3.0</property>
+      <property name="Depth">7.6898746</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-18.145437</property>
+      <property name="PositionY">-2.6574302</property>
+      <property name="PositionZ">5.818868</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">8.4934225</property>
+      <property name="Height">3.0</property>
+      <property name="Depth">2.2543197</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">0.0</property>
+      <property name="PositionY">0.0</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">1.0</property>
+      <property name="Height">2.0</property>
+      <property name="Depth">1.0</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-24.91517</property>
+      <property name="PositionY">-2.7125666</property>
+      <property name="PositionZ">-0.99619454</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">4.072244</property>
+      <property name="Height">3.0</property>
+      <property name="Depth">7.3523245</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">PointLight</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-29.006147</property>
+      <property name="PositionY">2.5843992</property>
+      <property name="PositionZ">1.7743366</property>
+      <property name="RotationX">2.8014007</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.PointLightComp">
+      <property name="Color">ff66ccff</property>
+      <property name="Radius">15.0</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-5.8907404</property>
+      <property name="PositionY">-7.642535</property>
+      <property name="PositionZ">-9.515076</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">33.994267</property>
+      <property name="Height">13.3102455</property>
+      <property name="Depth">1.721367</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">0.0</property>
+      <property name="PositionY">-8.434693</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">20.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">20.0</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">Box</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-5.9664965</property>
+      <property name="PositionY">-6.059949</property>
+      <property name="PositionZ">8.0578</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">-23.696056</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">12.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">3.0</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">SpawnPoint</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">7.887145</property>
+      <property name="PositionY">-7.3853464</property>
+      <property name="PositionZ">-5.9816694</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">1.0</property>
+      <property name="Height">2.0</property>
+      <property name="Depth">1.0</property>
+    </component>
+    <component type="trb.fps.entity.SpawnPoint"></component>
+  </entity>
+</level>
