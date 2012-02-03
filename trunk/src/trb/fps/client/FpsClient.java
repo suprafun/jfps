@@ -29,7 +29,6 @@ import trb.fps.jsg.JsgRenderer;
 import trb.fps.net.ChangeLevelPacket;
 import trb.fps.net.PlayerPacket;
 import trb.fps.net.ServerPacket;
-import trb.fps.physics.PhysicsLevel;
 import trb.jsg.View;
 import trb.xml.XMLElement;
 
@@ -200,6 +199,7 @@ public class FpsClient {
         if (inputState.wasKeyPressed(Keyboard.KEY_F2)) {
             renderer = jsgRenderer;
         }
+        boolean jump = inputState.wasKeyPressed(Keyboard.KEY_SPACE);
         boolean mouseButton1pressed = inputState.wasButtonPressed(0);
         if (mouseButton1pressed && level.levelData.getPlayer(playerId).getHealth() <= 0) {
             client.sendTCP("respawn");
@@ -217,7 +217,9 @@ public class FpsClient {
                 moveY,
                 Mouse.isButtonDown(1) ? inputState.mouseDX : 0,
                 Mouse.isButtonDown(1) ? inputState.mouseDY : 0,
-                mouseButton1pressed);
+                mouseButton1pressed,
+                jump
+                );
     }
 }
 

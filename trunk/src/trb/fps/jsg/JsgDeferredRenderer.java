@@ -41,7 +41,6 @@ import trb.jsg.util.Vec3;
 
 public class JsgDeferredRenderer implements FpsRenderer {
 
-    public boolean useTopView = false;
     private View view = new View();
     private Renderer renderer;
     private long startTimeMillis = System.currentTimeMillis();
@@ -150,7 +149,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
 
         if (l.editorNavigation.enabled.get()) {
             view.setCameraMatrix(l.editorNavigation.viewTransform);
-        } else if(localPlayerIdx >= 0 && !useTopView) {
+        } else if(localPlayerIdx >= 0) {
             //PlayerData player = level.players[localPlayerIdx];
             PlayerPacket player = l.predictedState.getCurrentState();
             view.setCameraMatrix(player.getViewTransform());
@@ -183,7 +182,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
         for (int i = 0; i < playerModels.length; i++) {
             PlayerPacket player = level.interpolatedState.get(i).getCurrentState();
             boolean isLocal = (i == localPlayerIdx);
-            boolean visible = player.isConnected() && (!isLocal || useTopView);
+            boolean visible = player.isConnected() && (!isLocal || level.editorNavigation.enabled.get());
             for (Shape shape : playerModels[i].getAllShapesInTree()) {
                 shape.setVisible(visible);
             }

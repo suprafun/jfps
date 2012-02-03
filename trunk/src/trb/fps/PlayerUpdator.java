@@ -29,7 +29,7 @@ public class PlayerUpdator implements TimedInput {
         }
         PlayerPacket tempPlayer = player.setTime(getTime());
         tempPlayer.rotateAndMove(deltaTime, input.mouseDx, input.mouseDy, input.moveX, input.moveY);
-        Vec3 characterPos = physicsLevel.move(player.getPosition(), tempPlayer.getPosition());
+        Vec3 characterPos = physicsLevel.move(player.getPosition(), tempPlayer.getPosition(), input.jump);
         return tempPlayer.setPosition(characterPos);
     }
 }

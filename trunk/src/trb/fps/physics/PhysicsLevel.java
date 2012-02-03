@@ -61,8 +61,11 @@ public class PhysicsLevel {
         return convexHull;
     }
 
-    public Vec3 move(Vec3 from, Vec3 to) {
+    public Vec3 move(Vec3 from, Vec3 to, boolean jump) {
         synchronized (globalLock) {
+            if (jump) {
+                character.character.jump();
+            }
             character.setFromTo(from, to);
             nextFrame(1 / 30f);
             Vec3 pos = character.getTransform().getTranslation();

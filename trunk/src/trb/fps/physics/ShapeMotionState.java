@@ -9,7 +9,7 @@ import trb.jsg.util.Mat4;
 /**
  * Custom MotionState that gets the world transform from a TransformGroup
  */
-public class ShapeMotionState implements MotionState {
+public class ShapeMotionState extends MotionState {
 
     private final Mat4 startTransform = new Mat4();
     private final Shape shape;

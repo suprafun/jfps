@@ -9,6 +9,7 @@ import com.bulletphysics.linearmath.convexhull.HullDesc;
 import com.bulletphysics.linearmath.convexhull.HullFlags;
 import com.bulletphysics.linearmath.convexhull.HullLibrary;
 import com.bulletphysics.linearmath.convexhull.HullResult;
+import com.bulletphysics.util.ObjectArrayList;
 import java.util.ArrayList;
 import java.util.List;
 import javax.vecmath.Vector3f;
@@ -22,7 +23,7 @@ public class ConvexHull {
         DYNAMIC, STATIC, KINEMATIC;
     }
 
-    public ConvexHullShape convexHullShape = new ConvexHullShape(new ArrayList());
+    public ConvexHullShape convexHullShape = new ConvexHullShape(new ObjectArrayList());
     public RigidBody body;
     private final Shape shape;
     private float[] coords;
@@ -69,7 +70,7 @@ public class ConvexHull {
     }
 
     private void createOptimizedHull() {
-        List<Vector3f> vertices = new ArrayList(coords.length / 3);
+        ObjectArrayList<Vector3f> vertices = new ObjectArrayList(coords.length / 3);
         for (int off = 0; off < coords.length; off += 3) {
             vertices.add(new Vector3f(coords[off + 0], coords[off + 1], coords[off + 2]));
         }
