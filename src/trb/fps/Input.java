@@ -11,6 +11,7 @@ public class Input implements TimedInput {
 	public final int mouseDx;
 	public final int mouseDy;
 	public final boolean fire;
+	public final boolean jump;
 
     public Input() {
         time = 0;
@@ -20,9 +21,11 @@ public class Input implements TimedInput {
         mouseDx = 0;
         mouseDy = 0;
         fire = false;
+        jump = false;
     }
 
-	public Input(long time, long serverTime, int moveX, int moveY, int mouseDx, int mouseDy, boolean fire) {
+	public Input(long time, long serverTime, int moveX, int moveY
+            , int mouseDx, int mouseDy, boolean fire, boolean jump) {
         this.time = time;
         this.serverTime = serverTime;
         this.moveX = moveX;
@@ -30,6 +33,7 @@ public class Input implements TimedInput {
         this.mouseDx = mouseDx;
         this.mouseDy = mouseDy;
         this.fire = fire;
+        this.jump = jump;
 	}
 
     public long getTime() {
@@ -45,6 +49,9 @@ public class Input implements TimedInput {
 		if (fire) {
 			str.append(" fire");
 		}
+        if (jump) {
+            str.append(" jump");
+        }
 		str.append(" dx=").append(mouseDx).append(" dy=").append(mouseDy);
 		return str.toString();
 	}

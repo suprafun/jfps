@@ -6,7 +6,7 @@ import com.bulletphysics.collision.dispatch.GhostPairCallback;
 import com.bulletphysics.collision.dispatch.PairCachingGhostObject;
 import com.bulletphysics.collision.shapes.ConvexShape;
 import com.bulletphysics.collision.shapes.SphereShape;
-import com.bulletphysics.dynamics.character.KinematicCharacterController;
+import com.bulletphysics.dynamics.character.MyKinematicCharacterController;
 import com.bulletphysics.linearmath.Transform;
 import javax.vecmath.Vector3f;
 import trb.jsg.util.Mat4;
@@ -14,7 +14,7 @@ import trb.jsg.util.Vec3;
 
 public class KinematicCharacter {
 
-    public KinematicCharacterController character;
+    public MyKinematicCharacterController character;
     public PairCachingGhostObject ghostObject;
     private Vector3f CHARACTER_POS = new Vector3f(0.75f, 1, 2);
     private float CHARACTER_RADIUS = 0.5f;
@@ -34,7 +34,9 @@ public class KinematicCharacter {
         ghostObject.setCollisionFlags(CollisionFlags.CHARACTER_OBJECT);
 
         float stepHeight = 0.5f;//0.35f;
-        character = new KinematicCharacterController(ghostObject, capsule, stepHeight);
+        character = new MyKinematicCharacterController(ghostObject, capsule, stepHeight);
+        character.setFallSpeed(10f);
+        character.setGravity(9.8f*2f);
 
         physicsLevel.dynamicsWorld.addCollisionObject(ghostObject, CollisionFilterGroups.CHARACTER_FILTER,
                 (short) (CollisionFilterGroups.STATIC_FILTER | CollisionFilterGroups.DEFAULT_FILTER));
