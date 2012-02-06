@@ -18,6 +18,7 @@ import trb.fps.entity.Box;
 import trb.fps.entity.DeferredSystem;
 import trb.fps.entity.EntityList;
 import trb.fps.entity.SpawnPoint;
+import trb.fps.net.PlayerPacket;
 import trb.jsg.Shape;
 import trb.jsg.TreeNode;
 import trb.jsg.util.Vec3;
@@ -61,15 +62,21 @@ public class PhysicsLevel {
         return convexHull;
     }
 
-    public Vec3 move(Vec3 from, Vec3 to, boolean jump) {
+    public PlayerPacket move(PlayerPacket from, PlayerPacket to, boolean jump) {
         synchronized (globalLock) {
+            character.setFromTo(from.getPosition(), to.getPosition());
+            MyKinematicCharacterController c = character.character;
+            c.verticalVelocity = from.verticalVelocity;
+            c.wasJumping = from.wasJumping;
+            c.wasOnGround = from.wasOnGround;
             if (jump) {
                 character.character.jump();
             }
-            character.setFromTo(from, to);
             nextFrame(1 / 30f);
-            Vec3 pos = character.getTransform().getTranslation();
-            return pos;
+            to.verticalVelocity = c.verticalVelocity;
+            to.wasJumping = c.wasJumping;
+            to.wasOnGround = c.wasOnGround;
+            return to.setPosition(character.getTransform().getTranslation());
         }
     }
 
