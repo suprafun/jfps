@@ -72,7 +72,8 @@ public class PhysicsLevel {
             if (jump) {
                 character.character.jump();
             }
-            nextFrame(1 / 30f);
+            long timeDeltaMillis = to.getTime() - from.getTime();
+            nextFrame(timeDeltaMillis / 1000f);
             to.verticalVelocity = c.verticalVelocity;
             to.wasJumping = c.wasJumping;
             to.wasOnGround = c.wasOnGround;
@@ -156,7 +157,7 @@ public class PhysicsLevel {
 
         // will increment simulation in 1/60 second steps and interpolate
         // between the two last steps to get smooth animation
-        dynamicsWorld.stepSimulation(frameTimeSec);
+        dynamicsWorld.stepSimulation(frameTimeSec, 0, frameTimeSec);
     }
 
     public void rayTest(Vec3 p1, Vec3 p2, ClosestRayResultCallback rayCallback) {
