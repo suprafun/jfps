@@ -3,7 +3,6 @@ package trb.fps;
 import trb.fps.net.PlayerPacket;
 import trb.fps.physics.PhysicsLevel;
 import trb.fps.predict.TimedInput;
-import trb.jsg.util.Vec3;
 
 public class PlayerUpdator implements TimedInput {
 
