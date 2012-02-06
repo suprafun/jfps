@@ -6,7 +6,6 @@ import com.bulletphysics.collision.dispatch.GhostPairCallback;
 import com.bulletphysics.collision.dispatch.PairCachingGhostObject;
 import com.bulletphysics.collision.shapes.ConvexShape;
 import com.bulletphysics.collision.shapes.SphereShape;
-import com.bulletphysics.dynamics.character.MyKinematicCharacterController;
 import com.bulletphysics.linearmath.Transform;
 import javax.vecmath.Vector3f;
 import trb.jsg.util.Mat4;

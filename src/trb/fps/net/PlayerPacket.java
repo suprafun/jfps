@@ -15,6 +15,9 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
     private long time = 0;
     private String name = "";
     private float[] position = {0, 0, 0};
+    public float verticalVelocity = 0f;
+    public boolean wasOnGround = false;
+    public boolean wasJumping = false;
     private float headingRad = 0f;
     private float tiltRad = 0f;
     private int health = 0;
@@ -32,6 +35,9 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
         this.time = copy.time;
         this.name = copy.name;
         this.position = copy.position;
+        this.verticalVelocity = copy.verticalVelocity;
+        this.wasOnGround = copy.wasOnGround;
+        this.wasJumping = copy.wasJumping;
         this.headingRad = copy.headingRad;
         this.tiltRad = copy.tiltRad;
         this.health = copy.health;
@@ -201,6 +207,7 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
         PlayerPacket d = new PlayerPacket(s2);
         d.time = (long) (time + t * (s2.time - time));
         d.position = getPosition().interpolate_(s2.getPosition(), t).toFloats();
+        //d.verticalVelocity = verticalVelocity + t * (s2.verticalVelocity - verticalVelocity);
         return d;
     }
 }
