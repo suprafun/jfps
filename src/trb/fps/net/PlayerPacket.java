@@ -1,13 +1,14 @@
 package trb.fps.net;
 
 import trb.fps.PlayerUpdator;
+import trb.fps.physics.KinematicCharacter;
 import trb.fps.predict.TimedState;
 import trb.jsg.util.Mat4;
 import trb.jsg.util.Vec3;
 
 public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
 
-    private static final float SPEED = 10f;
+    private static final float SPEED = 5f;
 
     private boolean connected = false;
     private int id = -1;
@@ -75,6 +76,10 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
 
     public Vec3 getPosition() {
         return new Vec3(position);
+    }
+
+    public Vec3 getBottomPosition() {
+        return new Vec3(position).sub(0, KinematicCharacter.CHARACTER_RADIUS, 0);
     }
 
     public PlayerPacket setPosition(Vec3 translation) {
@@ -155,14 +160,14 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
 
     public Mat4 getViewTransform() {
         Mat4 viewMat = new Mat4();
-        viewMat.setTranslation_(getPosition().add(0, 1.6f, 0));
+        viewMat.setTranslation_(getBottomPosition().add(0, 1.6f, 0));
         viewMat.setEuler(new Vec3(tiltRad, headingRad, 0f));
         viewMat.invert();
         return viewMat;
     }
 
     public Mat4 getModelTransform() {
-        return new Mat4().setTranslation_(getPosition()).setEuler(new Vec3(0, headingRad, 0));
+        return new Mat4().setTranslation_(getBottomPosition()).setEuler(new Vec3(0, headingRad, 0));
     }
 
     public void init(String name) {
@@ -178,6 +183,9 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
         headingRad = location.getEuler().y;
         tiltRad = 0f;
         health = 100;
+        verticalVelocity = 0f;
+        wasOnGround = false;
+        wasJumping = true;
     }
 
     /** TimedState */

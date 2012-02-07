@@ -16,7 +16,7 @@ public class KinematicCharacter {
     public MyKinematicCharacterController character;
     public PairCachingGhostObject ghostObject;
     private Vector3f CHARACTER_POS = new Vector3f(0.75f, 1, 2);
-    private float CHARACTER_RADIUS = 0.5f;
+    public static final float CHARACTER_RADIUS = 0.5f;
 
     public KinematicCharacter(PhysicsLevel physicsLevel) {
         Transform startTransform = new Transform();
@@ -34,8 +34,8 @@ public class KinematicCharacter {
 
         float stepHeight = 0.5f;//0.35f;
         character = new MyKinematicCharacterController(ghostObject, capsule, stepHeight);
-        character.setFallSpeed(10f);
-        character.setGravity(9.8f*2f);
+        //character.setFallSpeed(10f);
+        //character.setGravity(9.8f*2f);
 
         physicsLevel.dynamicsWorld.addCollisionObject(ghostObject, CollisionFilterGroups.CHARACTER_FILTER,
                 (short) (CollisionFilterGroups.STATIC_FILTER | CollisionFilterGroups.DEFAULT_FILTER));
@@ -53,7 +53,6 @@ public class KinematicCharacter {
         Mat4 t3d = new Mat4();
         t3d.setTranslation(characterWorldTrans.origin);
         t3d.setRotationScale(characterWorldTrans.basis);
-        //characterTG.setTransform(t3d);
         return t3d;
     }
 }
