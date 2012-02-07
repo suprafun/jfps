@@ -276,8 +276,6 @@ public class MyKinematicCharacterController extends ActionInterface {
             return;
         }
 
-        System.out.println("JUMP");
-
         verticalVelocity = jumpSpeed;
         wasJumping = true;
     }

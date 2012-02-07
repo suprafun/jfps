@@ -15,6 +15,7 @@ import trb.jsg.State.StencilFuncParams;
 import trb.jsg.State.StencilOpParams;
 import trb.jsg.TreeNode;
 import trb.jsg.VertexData;
+import trb.jsg.enums.PolygonMode;
 import trb.jsg.enums.StencilAction;
 import trb.jsg.enums.StencilFunc;
 import trb.jsg.renderer.Renderer;
@@ -116,6 +117,9 @@ public class DeferredSystem {
             shape.getState().setStencilFunc(new StencilFuncParams(StencilFunc.ALWAYS, 1, 1));
             shape.getState().setStencilOp(new StencilOpParams(StencilAction.KEEP, StencilAction.KEEP, StencilAction.REPLACE));
             shape.setVertexData(box.createVertexData());
+            if (box.getComponent(SpawnPoint.class) != null) {
+                shape.getState().setPolygonMode(PolygonMode.LINE);
+            }
             NormalMapping.apply(shape);
             TreeNode node = new TreeNode(shape);
             node.setTransform(box.getComponent(Transform.class).get());

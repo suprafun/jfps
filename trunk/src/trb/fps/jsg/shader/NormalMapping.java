@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import trb.fps.jsg.JsgDeferredRenderer;
 import trb.jsg.Shader;
 import trb.jsg.ShaderProgram;
 import trb.jsg.Shape;
@@ -22,6 +23,27 @@ import trb.jsg.util.ShaderUtils;
  * Deferred normal mapping.
  */
 public class NormalMapping {
+    private static final String noMapsVertex =
+            "attribute vec4 tangentIn;"
+            + "varying vec3 tangent;"
+            + "varying vec3 bitangent;"
+            + "varying vec3 normal;"
+            + "varying vec3 posv;"
+            + "void main(void) {"
+            + "    normal = gl_NormalMatrix * gl_Normal;"
+            + "    posv = (gl_ModelViewMatrix * gl_Vertex).xyz;"
+            + "    gl_Position = ftransform();"
+            + "}";
+    private static final String noMapsFragment =
+            "\nvarying vec3 normal;"
+            + "\nvarying vec3 posv;"
+            + "\nuniform float farClipDistance;"
+            + "\nuniform vec4 colorAndSpecular;"
+            + "\nvoid main(void) {"
+            + "\n    gl_FragData[0] = vec4( normalize( normal ) * 0.5 + 0.5, -posv.z / farClipDistance );"
+            + "\n    gl_FragData[1] = colorAndSpecular;"
+            + "\n}";
+
     private static final String vertexShader =
             "attribute vec4 tangentIn;"
             + "varying vec3 tangent;"
@@ -59,6 +81,7 @@ public class NormalMapping {
     public static final Shader shader;
     private static final Texture texturemap;
     private static final Texture normalmap;
+    public static final ShaderProgram noMapsShaderProgram = new ShaderProgram(noMapsVertex, noMapsFragment);
 
     static {
         shader = new Shader(new ShaderProgram(vertexShader, fragmentShader, "tangentIn"));
@@ -99,5 +122,12 @@ public class NormalMapping {
         shape.getState().setShader(shader);
         shape.getState().setUnit(0, new Unit(texturemap));
         shape.getState().setUnit(1, new Unit(normalmap));
+    }
+
+    public static Shader createNoMapsShader(float r, float g, float b, float specular) {
+        Shader noMapsShader = new Shader(noMapsShaderProgram);
+        noMapsShader.putUniform(new Uniform("farClipDistance", Uniform.Type.FLOAT, JsgDeferredRenderer.far));
+        noMapsShader.putUniform(new Uniform("colorAndSpecular", Uniform.Type.VEC4, r, g, b, specular));
+        return noMapsShader;
     }
 }

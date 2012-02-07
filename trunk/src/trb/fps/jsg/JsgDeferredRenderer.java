@@ -45,14 +45,14 @@ public class JsgDeferredRenderer implements FpsRenderer {
     private Renderer renderer;
     private long startTimeMillis = System.currentTimeMillis();
     public RenderPass basePass;
-    private TreeNode[] playerModels;
+    private JsgCharacter[] playerModels;
     private TreeNode[] bulletModels;
     private JsgHud hud;
     private Level level;
     private final Shader shader = new Shader(BasePass.baseProgram);
     public LightManager lightManager;
 	private SkyboxPass skyboxPass;
-    private final float far = 200f;
+    public static final float far = 200f;
     public DeferredSystem deferredSystem = new DeferredSystem(this);
 
     public void init(Level level) {
@@ -70,7 +70,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
         shader.putUniform(new Uniform("farClipDistance", Uniform.Type.FLOAT, far));
         NormalMapping.shader.putUniform(new Uniform("farClipDistance", Uniform.Type.FLOAT, far));
 
-        playerModels = createModels(LevelPacket.MAX_PLAYERS, basePass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 1, 0), new Vec3(0.5f, 2f, 0.08f)));
+        playerModels = JsgCharacter.create(LevelPacket.MAX_PLAYERS, basePass.getRootNode());
 
         // add renderpass to scene graph
         SceneGraph sceneGraph = new SceneGraph(basePass);
@@ -122,12 +122,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
         TreeNode[] nodes = new TreeNode[cnt];
         for (int i = 0; i < cnt; i++) {
             Shape shape = new Shape();
-            shape.getState().setCullEnabled(true);
-            shape.getState().setMaterial(new Material());
-            shape.getState().setShader(shader);
-            shape.getState().setStencilTestEnabled(true);
-            shape.getState().setStencilFunc(new StencilFuncParams(StencilFunc.ALWAYS, 1, 1));
-            shape.getState().setStencilOp(new StencilOpParams(StencilAction.REPLACE, StencilAction.REPLACE, StencilAction.REPLACE));
+            applyState(shape, shader);
             //playerShape.setVisible(false);
             shape.setVertexData(vertexData);
 
@@ -138,6 +133,15 @@ public class JsgDeferredRenderer implements FpsRenderer {
             //node.setTranform(new Mat4().getMatrix4f());
         }
         return nodes;
+    }
+
+    public static void applyState(Shape shape, Shader shader) {
+        shape.getState().setCullEnabled(true);
+        shape.getState().setMaterial(new Material());
+        shape.getState().setShader(shader);
+        shape.getState().setStencilTestEnabled(true);
+        shape.getState().setStencilFunc(new StencilFuncParams(StencilFunc.ALWAYS, 1, 1));
+        shape.getState().setStencilOp(new StencilOpParams(StencilAction.REPLACE, StencilAction.REPLACE, StencilAction.REPLACE));
     }
 
     public void render(Level l, int localPlayerIdx) {
@@ -181,13 +185,12 @@ public class JsgDeferredRenderer implements FpsRenderer {
     private void renderPlayers(Level level, int localPlayerIdx) {
         for (int i = 0; i < playerModels.length; i++) {
             PlayerPacket player = level.interpolatedState.get(i).getCurrentState();
+            playerModels[i].update(player);
             boolean isLocal = (i == localPlayerIdx);
             boolean visible = player.isConnected() && (!isLocal || level.editorNavigation.enabled.get());
-            for (Shape shape : playerModels[i].getAllShapesInTree()) {
-                shape.setVisible(visible);
-            }
+            playerModels[i].setVisible(visible);
             if (visible) {
-                Vec3 pos = new Vec3(player.getPosition());
+                Vec3 pos = new Vec3(player.getBottomPosition());
                 if (player.getHealth() > 0) {
                     playerModels[i].setTransform(player.getModelTransform());
                 } else {
