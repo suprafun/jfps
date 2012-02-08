@@ -23,6 +23,7 @@ public class NumberEditor {
 
     public NumberEditor(Property<? extends Number> property) {
         this.property = property;
+
         property.listeners.addWeakListener(propertyListener);
         txt.addActionListener(new ActionListener() {
 
@@ -46,9 +47,19 @@ public class NumberEditor {
 
     private void updateProperty() {
         try {
-            Number number = NumberFormat.getInstance().parse(txt.getText());
-            if (property.getType().equals(Float.class)) {
-                property.set(number.floatValue());
+            if (property.getType().equals(Boolean.class)) {
+                property.set(Boolean.parseBoolean(txt.getText()));
+            } else {
+                Number number = NumberFormat.getInstance().parse(txt.getText());
+                if (property.getType().equals(Float.class)) {
+                    property.set(number.floatValue());
+                } else if (property.getType().equals(Double.class)) {
+                    property.set(number.doubleValue());
+                } else if (property.getType().equals(Integer.class)) {
+                    property.set(number.intValue());
+                } else if (property.getType().equals(Long.class)) {
+                    property.set(number.longValue());
+                }
             }
         } catch (Exception ex) {
             updateUI();

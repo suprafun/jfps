@@ -95,6 +95,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
 
         if (LevelEditor.instance != null) {
             FinalPass.transparentPass.getRootNode().addChild(LevelEditor.instance.selectionVisualisation.treeNode);
+            FinalPass.transparentPass.getRootNode().addChild(LevelEditor.instance.navMeshEditor.treeNode);
         }
 
         hud = new JsgHud();
