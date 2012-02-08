@@ -1,6 +1,8 @@
 package trb.fps.property;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -18,14 +20,27 @@ public class PropertyListPanel {
     JScrollPane scroll;
 
     public PropertyListPanel(final Entity entity) {
+        List<Property> properties = new ArrayList();
+        for (Component c : entity) {
+            for (Property p : c) {
+                properties.add(p);
+            }
+        }
+        init(properties);
+    }
+
+    public PropertyListPanel(List<Property> properties) {
+        init(properties);
+    }
+
+
+    private void init(List<Property> properties) {
         JPanel panel = new JPanel();
         panel.setLayout(new MigLayout("fillx", "[][]", ""));
 
-        for (Component c : entity) {
-            for (Property p : c) {
-                panel.add(new MutateLabel(p).get(), "growx");
-                panel.add(createEditor(p), "growx, wrap");
-            }
+        for (Property p : properties) {
+            panel.add(new MutateLabel(p).get(), "growx");
+            panel.add(createEditor(p), "growx, wrap");
         }
 
         scroll = new JScrollPane(panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
