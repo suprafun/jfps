@@ -22,13 +22,13 @@ import trb.jsg.renderer.Renderer;
 import trb.jsg.util.geometry.VertexDataUtils;
 
 public class Blur {
-	private String vertexShader =
+	private static String vertexShader =
 			"void main(void) {"
 			+ "    gl_TexCoord[0] = gl_MultiTexCoord0;"
 			+ "    gl_Position    = ftransform();"
 			+ "}";
 
-	private String fragmentShader =
+	private static String fragmentShader =
 			"uniform sampler2D source;"
 			+ "uniform float coefficients[3];"
 			+ "uniform vec2 offset;"
@@ -52,7 +52,7 @@ public class Blur {
 		verticalRenderer = new Renderer(new SceneGraph(createPass(pong, ping, 0, 1.5f/ping.getHeight())));
 	}
 
-	private RenderPass createPass(Texture ping, Texture pong, float offsetx, float offsety) {
+	public static RenderPass createPass(Texture ping, Texture pong, float offsetx, float offsety) {
 		Shader shader = new Shader(new ShaderProgram(vertexShader, fragmentShader));
 		shader.putUniform(new Uniform("coefficients", Uniform.Type.FLOAT, 5f/15f, 5f/15f, 5f/15f));
 		shader.putUniform(new Uniform("offset", Uniform.Type.VEC2, offsetx, offsety));
