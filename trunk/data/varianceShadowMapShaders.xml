@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shaders>
+    <shader name="storeMoments">
+        <vertex><![CDATA[
+varying vec3 posv;
+void main(void) {
+    posv = (gl_ModelViewMatrix * gl_Vertex).xyz;
+    gl_Position = ftransform();
+}
+        ]]></vertex>
+        <fragment><![CDATA[
+varying vec3 posv;
+void main( void ){
+   float depth = length(posv);
+
+   float moment1 = depth;
+   float moment2 = depth * depth;
+
+   // Adjusting moments (this is sort of bias per pixel) using partial derivative
+   float dx = dFdx(depth);
+   float dy = dFdy(depth);
+   moment2 += 0.25*(dx*dx+dy*dy);
+
+   gl_FragColor = vec4(moment1, moment2, 0.0, 0.0);
+}
+        ]]></fragment>
+    </shader>
+
+    <shader name="shadow">
+        <vertex><![CDATA[
+varying vec3 posv;
+void main(void) {
+    posv = ( gl_ModelViewMatrix * gl_Vertex ).xyz;
+    gl_Position = ftransform();
+}
+        ]]></vertex>
+        <fragment><![CDATA[
+varying vec3 posv;
+uniform mat4 viewToLight;
+uniform sampler2D texture;
+uniform vec3 lightPosVS;
+void main( void ){
+    float distanceToLight = length(posv - lightPosVS);
+    vec4 posl = viewToLight * vec4(posv, 1);
+    posl /= posl.w;
+    float distanceToShadowCaster = texture2D(texture, posl.xy).x;
+    gl_FragColor = distanceToShadowCaster * 0.5;
+}
+    ]]></fragment>
+    </shader>
+
+    <shader name="shadow2">
+        <vertex><![CDATA[
+varying vec3 posv;
+void main(void) {
+    posv = ( gl_ModelViewMatrix * gl_Vertex ).xyz;
+    gl_Position = ftransform();
+}
+            ]]></vertex>
+        <fragment><![CDATA[
+uniform sampler2D ShadowMap;
+uniform vec3 lightPosVS;
+varying vec3 posv;
+uniform mat4 viewToLight;
+
+void main() {
+    //vec4 ShadowCoordPostW = ShadowCoord / ShadowCoord.w;
+
+    //float shadow = chebyshevUpperBound(ShadowCoordPostW.z);
+    //float distance = ShadowCoordPostW.z;
+
+    float distance = length(posv - lightPosVS);
+    vec4 posl = viewToLight * vec4(posv, 1);
+    posl /= posl.w;
+    vec2 moments = texture2D(ShadowMap,posl.xy).rg;
+
+    // We retrive the two moments previously stored (depth and depth*depth)
+    //vec2 moments = texture2D(ShadowMap,ShadowCoordPostW.xy).rg;
+
+    // Surface is fully lit. as the current fragment is before the light occluder
+    vec4 color = vec4(1.0);
+    if (distance > moments.x) {
+        // The fragment is either in shadow or penumbra. We now use chebyshev's
+        // upperBound to check how likely this pixel is to be lit (p_max)
+        float variance = moments.y - (moments.x*moments.x);
+        variance = max(variance, 0.0000002);
+
+        float d = distance - moments.x;
+        float p_max = variance / (variance + d*d);
+
+        float shadow = p_max;
+        color = vec4(shadow);
+    }
+
+    gl_FragColor = color;
+}
+        ]]></fragment>
+    </shader>
+</shaders>
