@@ -268,7 +268,7 @@ public final class LevelEditor {
 
     public File getCurrentFile() {
         Preferences prefs = Preferences.userNodeForPackage(getClass());
-        File file = new File(prefs.get("currentFile", "."));
+        File file = new File(prefs.get("currentFile", "./data/level.txt"));
         if (file.isFile()) {
             return file;
         }
@@ -277,7 +277,7 @@ public final class LevelEditor {
 
     public File getCurrentFolder() {
         Preferences prefs = Preferences.userNodeForPackage(getClass());
-        File file = new File(prefs.get("currentFile", "."));
+        File file = new File(prefs.get("currentFile", "./data"));
         if (file.isFile()) {
             return file.getParentFile();
         }
