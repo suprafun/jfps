@@ -1,6 +1,7 @@
 package trb.fps.jsg.shader;
 
 import java.nio.ByteBuffer;
+import javax.vecmath.Color4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -8,15 +9,16 @@ import org.lwjgl.opengl.GL11;
 import trb.jsg.RenderPass;
 import trb.jsg.RenderTarget;
 import trb.jsg.SceneGraph;
+import trb.jsg.Shader;
+import trb.jsg.ShaderProgram;
 import trb.jsg.Shape;
 import trb.jsg.Texture;
+import trb.jsg.Uniform;
 import trb.jsg.Unit;
-import trb.jsg.VertexData;
 import trb.jsg.View;
 import trb.jsg.enums.Format;
 import trb.jsg.enums.TextureType;
 import trb.jsg.renderer.Renderer;
-import trb.jsg.util.SGUtil;
 import trb.jsg.util.geometry.VertexDataUtils;
 
 public class Blur {
@@ -42,26 +44,33 @@ public class Blur {
 			+ "}";
 
 
-	RenderPass renderPass = new RenderPass();
+	Renderer horisontalRenderer;
+	Renderer verticalRenderer;
 
 	public Blur(Texture ping, Texture pong) {
-		RenderTarget renderTarget = new RenderTarget(ping.getWidth(), ping.getHeight()
-				, null, false, pong);
-
-		VertexData vertexData = VertexDataUtils.createQuad(0, 0, ping.getWidth(), ping.getHeight(), 0);
-
-		Shape shape = new Shape(vertexData);
-		shape.getState().setDepthTestEnabled(false);
-		shape.getState().setUnit(0, new Unit(ping));
-
-		renderPass.setView(View.createOrtho(0, ping.getWidth(), 0, ping.getHeight(), -1000, 1000));
-		renderPass.setRenderTarget(renderTarget);
-		renderPass.getRootNode().addShape(shape);
-
-//		Renderer renderer = new Renderer(new SceneGraph(renderPass));
-//		renderer.render();
+		horisontalRenderer = new Renderer(new SceneGraph(createPass(ping, pong, 1.5f/ping.getWidth(), 0f)));
+		verticalRenderer = new Renderer(new SceneGraph(createPass(pong, ping, 0, 1.5f/ping.getHeight())));
 	}
 
+	private RenderPass createPass(Texture ping, Texture pong, float offsetx, float offsety) {
+		Shader shader = new Shader(new ShaderProgram(vertexShader, fragmentShader));
+		shader.putUniform(new Uniform("coefficients", Uniform.Type.FLOAT, 5f/15f, 5f/15f, 5f/15f));
+		shader.putUniform(new Uniform("offset", Uniform.Type.VEC2, offsetx, offsety));
+		Shape shape = new Shape(VertexDataUtils.createQuad(0, 0, 1, 1, 0));
+		shape.getState().setDepthTestEnabled(false);
+		shape.getState().setUnit(0, new Unit(ping));
+		shape.getState().setShader(shader);
+		RenderPass pass = new RenderPass();
+		pass.setView(View.createOrtho(0, 1, 1, 0, -1000, 1000));
+		pass.setRenderTarget(new RenderTarget(ping.getWidth(), ping.getHeight(), null, false, pong));
+		pass.addShape(shape);
+		return pass;
+	}
+
+	public void blur() {
+		horisontalRenderer.render();
+		verticalRenderer.render();
+	}
 
 	public static void main(String[] args) throws Exception {
 		Display.setDisplayMode(new DisplayMode(640, 480));
@@ -69,32 +78,33 @@ public class Blur {
 
 		RenderPass renderPass = new RenderPass();
 		renderPass.setClearMask(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		renderPass.setClearColor(new Color4f(0.5f, 0.4f, 0.3f, 1f));
 		renderPass.setView(View.createOrtho(0, 640, 0, 480, -1000, 1000));
 
-		int w = 32;
-		int h = 32;
+		int w = 256;
+		int h = 256;
 		ByteBuffer byteBuffer = BufferUtils.createByteBuffer(w * h * 4);
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
-				byte b = (byte) ((x ^ y)  << 7);
+				byte b = (byte) (((x<<3) ^ (y<<3)));
 				byteBuffer.put(b).put(b).put(b).put(b);
 			}
 		}
 		ByteBuffer[][] pixels = {{byteBuffer}};
-		Texture ping = new Texture(TextureType.TEXTURE_2D, 4, 256, 256, 0, Format.BGRA, pixels, false, false);
-		Texture pong = SGUtil.createTexture(4, 256, 256);
+		ByteBuffer[][] pongPixels =  {{BufferUtils.createByteBuffer(w * h * 4)}};
+		Texture ping = new Texture(TextureType.TEXTURE_2D, 4, w, h, 0, Format.BGRA, pixels, false, false);
+		Texture pong = new Texture(TextureType.TEXTURE_2D, 4, w, h, 0, Format.BGRA, pongPixels, false, false);
 
 		Blur blur = new Blur(ping, pong);
+		for (int i=0; i<2; i++) {
+			blur.blur();
+		}
 
 		Shape shape = new Shape(VertexDataUtils.createQuad(100, 100, 356, 356, 0));
 		shape.getState().setUnit(0, new Unit(ping));
 
 		renderPass.getRootNode().addShape(shape);
-		SceneGraph scenegraph = new SceneGraph();
-		scenegraph.addRenderPass(blur.renderPass);
-		scenegraph.addRenderPass(renderPass);
-		Renderer renderer = new Renderer(scenegraph);
-
+		Renderer renderer = new Renderer(new SceneGraph(renderPass));
 
 		while (!Display.isCloseRequested()) {
 			renderer.render();
