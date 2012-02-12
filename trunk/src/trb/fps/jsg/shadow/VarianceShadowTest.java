@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import javax.vecmath.Color4f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.input.Mouse;
 
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -67,8 +68,7 @@ public class VarianceShadowTest {
         shadowPass.setRenderTarget(shadowTarget);
         shadowPass.addShape(new Shape(VertexDataUtils.createBox(new Vec3(-4, -1, -4), new Vec3(4, 0, 4))));
         shadowPass.addShape(new Shape(VertexDataUtils.createBox(new Vec3(-1, 1, -1), new Vec3(1, 3, 1))));
-        shadowPass.getView().setCameraMatrix(new Mat4().rotateEulerDeg(-90 - 25, 45, 0).translate(0, 0, 10).invert_());
-        //Renderer shadowRenderer = new Renderer(new SceneGraph(shadowPass));
+        shadowPass.getView().setCameraMatrix(new Mat4().rotateEulerDeg(-90 - 45, 120, 0).translate(0, 0, 10).invert_());
 
         Shape baseShape = new Shape(VertexDataUtils.createQuad(50, 100 + 256, 256, -256, 0));
         baseShape.getState().setUnit(0, new Unit(baseTexture));
@@ -98,8 +98,15 @@ public class VarianceShadowTest {
         finalSceneGraph.addRenderPass(finalPass);
         Renderer finalRenderer = new Renderer(finalSceneGraph);
 
+		int angle = 0;
         long startTime = System.currentTimeMillis();
         while (!Display.isCloseRequested()) {
+			if (Mouse.isButtonDown(0)) {
+				angle += Mouse.getDX();
+			}
+//			shadowPass.getView().setCameraMatrix(new Mat4().rotateEulerDeg(-90 - 45, angle, 0).translate(0, 0, 14).invert_());
+//			basePass.getView().setCameraMatrix(new Mat4().rotateEulerDeg(-30, angle, 0).translate(0, 0, 10).invert_());
+
             float timeSec = (System.currentTimeMillis() - startTime) / 1000f;
             baseBox.setModelMatrix(new Mat4().rotateEulerDeg(0, timeSec * 45, 0).translate(0, Math.sin(timeSec*1.7f)*2, 0));
 
@@ -141,8 +148,6 @@ public class VarianceShadowTest {
 
         Shader spotLightShader = new Shader(loadProgram("storeMoments"));
         for (Shape shape : lightPass.getAllShapes()) {
-            shape.getState().setCullEnabled(true);
-            shape.getState().setCullFace(Face.FRONT);
             shape.getState().setShader(spotLightShader);
         }
     }
