@@ -39,6 +39,7 @@ public class Main {
 	private static FpsServer startServer() {
 		FpsServer server = new FpsServer();
 		server.start();
+		server.botManager.addBot("Bot01");
 		return server;
 	}
 

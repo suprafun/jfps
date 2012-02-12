@@ -19,8 +19,8 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
     public float verticalVelocity = 0f;
     public boolean wasOnGround = false;
     public boolean wasJumping = false;
-    private float headingRad = 0f;
-    private float tiltRad = 0f;
+    public float headingRad = 0f;
+    public float tiltRad = 0f;
     private int health = 0;
     private int kills = 0;
     private int deaths = 0;
@@ -136,10 +136,9 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
         return d;
     }
 
-    public void rotateAndMove(long timeDeltaMillis, int mouseDx, int mouseDy, int x, int z) {
-        headingRad -= mouseDx * (float) Math.toRadians(360.0 / 400.0);
-        tiltRad += mouseDy * (float) Math.toRadians(360.0 / 400.0);
-        tiltRad = (float) Math.max(-Math.PI/3, Math.min(Math.PI/3, tiltRad));
+    public void rotateAndMove(long timeDeltaMillis, float headingRad, float tiltRad, int x, int z) {
+		this.headingRad = headingRad;
+		this.tiltRad = tiltRad;
         Vec3 headingVec = getHeadingVector();
         Vec3 rightVec = new Vec3().cross_(headingVec, new Vec3(0, 1, 0));
         headingVec.scale(z * SPEED * timeDeltaMillis / 1000f);

@@ -28,7 +28,7 @@ public class NavmeshParameters extends PropertyOwner {
     public final Property<Float> maxTraversableStep = add("MaxTraversableStep", 0.3f);
     public final Property<Float> maxTraversableSlope = add("MaxTraversableSlope", 45f);
     public final Property<Boolean> clipLedges = add("ClipLedges", true);
-    public final Property<Float> traversableAreaBorderSize = add("TraversableAreaBorderSize", 0.1f);
+    public final Property<Float> traversableAreaBorderSize = add("TraversableAreaBorderSize", 0.5f);
     public final Property<Integer> smoothingTreshold = add("SmoothingTreshold", 0);
     public final Property<Boolean> useConservativeExpansion = add("UseConservativeExpansion", false);
     public final Property<Integer> minUnconnectedRegionSize = add("MinUnconnectedRegionSize", 5000);

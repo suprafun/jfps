@@ -16,6 +16,7 @@ public class FpsServer {
     private final KryonetListener kryonetListener = new KryonetListener();
 	private final Server server = new Server(1024*256, 1024*256);
     public final GameLogic gameLogic = new GameLogic();
+	public final BotManager botManager = new BotManager(gameLogic);
     private boolean running = true;
     private EntityList newLevel;
 
@@ -41,6 +42,7 @@ public class FpsServer {
             while (isRunning()) {
                 sendChangeLevel();
                 server.update(0);
+				botManager.addInputToGameLogic();
                 gameLogic.update();
                 for (Connection connection : server.getConnections()) {
                     connection.sendTCP(gameLogic.level);
@@ -64,6 +66,7 @@ public class FpsServer {
         for (Connection connection : server.getConnections()) {
             connection.sendTCP(changeLevelPacket);
         }
+		botManager.levelChanged(changeLevelPacket);
         newLevel = null;
     }
 

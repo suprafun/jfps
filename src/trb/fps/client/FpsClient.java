@@ -103,7 +103,8 @@ public class FpsClient {
 
                 inputState.poll();
 
-                Input input = createInput(now, level.interpolatedServerState.getCurrentState().serverTime);
+                Input input = createInput(now, level.interpolatedServerState.getCurrentState().serverTime
+						, level.predictedState.getCurrentState());
                 sendInput(input);
 
                 if (level.editorNavigation.enabled.get()) {
@@ -183,7 +184,7 @@ public class FpsClient {
     /**
      * Polls Keyboard and Mouse. Drains Mouse events.
      */
-    Input createInput(long time, long serverTime) {
+    Input createInput(long time, long serverTime, PlayerPacket player) {
         if (inputState.wasKeyPressed(Keyboard.KEY_RETURN)) {
             client.sendTCP("respawn");
         }
@@ -204,6 +205,15 @@ public class FpsClient {
         if (mouseButton1pressed && level.levelData.getPlayer(playerId).getHealth() <= 0) {
             client.sendTCP("respawn");
         }
+
+		int mouseDx = Mouse.isButtonDown(1) ? inputState.mouseDX : 0;
+		int mouseDy = Mouse.isButtonDown(1) ? inputState.mouseDY : 0;
+		float headingRad = player.headingRad;
+		float tiltRad = player.tiltRad;
+        headingRad -= mouseDx * (float) Math.toRadians(360.0 / 400.0);
+        tiltRad += mouseDy * (float) Math.toRadians(360.0 / 400.0);
+        tiltRad = (float) Math.max(-Math.PI/2.1f, Math.min(Math.PI/2.1f, tiltRad));
+
         int moveX = 0;
         int moveY = 0;
         moveX += Keyboard.isKeyDown(Keyboard.KEY_A) ? -1 : 0;
@@ -215,8 +225,8 @@ public class FpsClient {
                 serverTime,
                 moveX,
                 moveY,
-                Mouse.isButtonDown(1) ? inputState.mouseDX : 0,
-                Mouse.isButtonDown(1) ? inputState.mouseDY : 0,
+                headingRad,
+                tiltRad,
                 mouseButton1pressed,
                 jump
                 );

@@ -11,8 +11,11 @@ import trb.jsg.DepthBuffer;
 import trb.jsg.RenderPass;
 import trb.jsg.RenderTarget;
 import trb.jsg.SceneGraph;
+import trb.jsg.Shader;
+import trb.jsg.ShaderProgram;
 import trb.jsg.Shape;
 import trb.jsg.Texture;
+import trb.jsg.Uniform;
 import trb.jsg.Unit;
 import trb.jsg.View;
 import trb.jsg.renderer.Renderer;
@@ -22,6 +25,19 @@ import trb.jsg.util.Vec3;
 import trb.jsg.util.geometry.VertexDataUtils;
 
 public class ShadowTest {
+
+    private static String vertexShader =
+            "varying vec3 posv;\n"
+            + "void main(void) {\n"
+            + "    posv = ( gl_ModelViewMatrix * gl_Vertex ).xyz;\n"
+            + "    gl_Position = ftransform();\n"
+            + "}";
+
+    private static String fragmentShader = ""
+            + "varying vec3 posv;\n"
+            + "uniform mat4 viewToLight;\n"
+            + "void main( void ){\n"
+            + "}\n";
 
 	public static void main(String[] args) throws Exception {
 		Display.setDisplayMode(new DisplayMode(640, 480));
@@ -62,21 +78,53 @@ public class ShadowTest {
 		finalPass.addShape(baseShape);
 		finalPass.addShape(shadowShape);
 
+                shadowStuff(basePass, shadowPass);
+
 		SceneGraph finalSceneGraph = new SceneGraph();
 		finalSceneGraph.addRenderPass(basePass);
 //		finalSceneGraph.addRenderPass(shadowPass);
-		finalSceneGraph.addRenderPass(finalPass);
+//		finalSceneGraph.addRenderPass(finalPass);
 		Renderer finalRenderer = new Renderer(finalSceneGraph);
+
 
 		long startTime = System.currentTimeMillis();
 		while (!Display.isCloseRequested()) {
 			float timeSec = (System.currentTimeMillis() - startTime) / 1000f;
 			baseBox.setModelMatrix(new Mat4().rotateEulerDeg(0, timeSec * 45, 0));
-			shadowRenderer.render();
+			//shadowRenderer.render();
 			finalRenderer.render();
 			Display.update();
 		}
 
 		Display.destroy();
 	}
+
+        static void shadowStuff(RenderPass basePass, RenderPass lightPass) {
+            Mat4 viewTransform = basePass.getView().getCameraMatrix();
+            Mat4 lightTransform = lightPass.getView().getCameraMatrix();
+
+            // view to world
+            Mat4 viewToLight = new Mat4(viewTransform).invert_();
+
+            // world to light
+            viewToLight.mul_(new Mat4(lightTransform));
+            viewToLight.mul(lightPass.getView().getProjectionMatrix());
+
+            Shader shader = createShader(viewToLight);
+            for (Shape shape : basePass.getAllShapes()) {
+                shape.getState().setShader(shader);
+            }
+        }
+
+        static Shader createShader(Mat4 viewToLight) {
+            Shader shader = new Shader(new ShaderProgram(vertexShader, fragmentShader));
+            shader.putUniform(new Uniform("viewToLight", Uniform.Type.MAT4, getTransposedFloats(viewToLight)));
+            return shader;
+        }
+
+        static float[] getTransposedFloats(Mat4 transform){
+            Mat4 m = new Mat4(transform);
+            m.transpose();
+            return m.toFloats();
+        }
 }

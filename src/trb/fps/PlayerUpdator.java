@@ -27,7 +27,7 @@ public class PlayerUpdator implements TimedInput {
             deltaTime = 1000;
         }
         PlayerPacket tempPlayer = player.setTime(getTime());
-        tempPlayer.rotateAndMove(deltaTime, input.mouseDx, input.mouseDy, input.moveX, input.moveY);
+        tempPlayer.rotateAndMove(deltaTime, input.headingRad, input.tiltRad, input.moveX, input.moveY);
         return physicsLevel.move(player, tempPlayer, input.jump);
     }
 }
