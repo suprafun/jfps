@@ -38,7 +38,7 @@ public class GameLogic {
     EntityList entityList = new EntityList();
     PhysicsLevel physicsLevel = new PhysicsLevel(entityList);
     public final LevelPacket level = new LevelPacket();
-    Map<Integer, Player> players = new HashMap();
+    private final Map<Integer, Player> players = new HashMap();
     
     public GameLogic() {
     }
@@ -238,6 +238,7 @@ public class GameLogic {
         Mat4 mat = new Mat4();
         List<SpawnPoint> spawnPoints = entityList.getComponents(SpawnPoint.class);
         if (spawnPoints.size() > 0) {
+			System.out.println("AAAAAAAA "+spawnPoints.size());
             int idx = new Random().nextInt(spawnPoints.size());
             return spawnPoints.get(idx).getComponent(Transform.class).get();
         }

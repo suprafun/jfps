@@ -8,8 +8,8 @@ public class Input implements TimedInput {
     public final long serverTime;
 	public final int moveX;
 	public final int moveY;
-	public final int mouseDx;
-	public final int mouseDy;
+    public final float headingRad;
+    public final float tiltRad;
 	public final boolean fire;
 	public final boolean jump;
 
@@ -18,20 +18,20 @@ public class Input implements TimedInput {
         serverTime = 0;
         moveX = 0;
         moveY = 0;
-        mouseDx = 0;
-        mouseDy = 0;
+        headingRad = 0;
+        tiltRad = 0;
         fire = false;
         jump = false;
     }
 
 	public Input(long time, long serverTime, int moveX, int moveY
-            , int mouseDx, int mouseDy, boolean fire, boolean jump) {
+            , float headingRad, float tiltRad, boolean fire, boolean jump) {
         this.time = time;
         this.serverTime = serverTime;
         this.moveX = moveX;
         this.moveY = moveY;
-        this.mouseDx = mouseDx;
-        this.mouseDy = mouseDy;
+        this.headingRad = headingRad;
+        this.tiltRad = tiltRad;
         this.fire = fire;
         this.jump = jump;
 	}
@@ -52,7 +52,7 @@ public class Input implements TimedInput {
         if (jump) {
             str.append(" jump");
         }
-		str.append(" dx=").append(mouseDx).append(" dy=").append(mouseDy);
+		str.append(" headingRad=").append(headingRad).append(" tiltRad=").append(tiltRad);
 		return str.toString();
 	}
 }

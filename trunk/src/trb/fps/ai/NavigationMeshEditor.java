@@ -4,11 +4,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.LineAttributes;
-import javax.media.j3d.LineStripArray;
-import javax.media.j3d.Shape3D;
 import javax.vecmath.Point3f;
 import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector3f;
@@ -36,10 +31,10 @@ public class NavigationMeshEditor {
     public final NavmeshParameters parameters = new NavmeshParameters();
     private MasterNavigator navigator;
     public final TreeNode treeNode = new TreeNode();
-    private final User user;
+    private final NavigationMeshCreator creator;
 
-    public NavigationMeshEditor(User user) {
-        this.user = user;
+    public NavigationMeshEditor(NavigationMeshCreator creator) {
+        this.creator = creator;
 
         parameters.listeners.addListener(new PropertyChangeListener() {
 
@@ -55,7 +50,7 @@ public class NavigationMeshEditor {
 
             public void run() {
                 NavmeshGenerator generator = parameters.create();
-                TriangleMesh triMesh = user.createTriangleMesh(generator);
+                TriangleMesh triMesh = creator.create(generator);
                 treeNode.removeAllShapes();
                 treeNode.addShape(createMeshGeometry(triMesh.vertices, triMesh.indices, false));
                 navigator = NavUtil.getNavigator(
@@ -155,8 +150,4 @@ public class NavigationMeshEditor {
 //        lineApp.setPolygonAttributes(new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0f));
 //        return lineApp;
 //    }
-
-    public interface User {
-        public TriangleMesh createTriangleMesh(NavmeshGenerator generator);
-    }
 }

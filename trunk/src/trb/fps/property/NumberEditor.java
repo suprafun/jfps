@@ -7,6 +7,7 @@ import java.awt.event.FocusEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
+import java.util.Locale;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 
@@ -50,7 +51,7 @@ public class NumberEditor {
             if (property.getType().equals(Boolean.class)) {
                 property.set(Boolean.parseBoolean(txt.getText()));
             } else {
-                Number number = NumberFormat.getInstance().parse(txt.getText());
+                Number number = NumberFormat.getInstance(Locale.ENGLISH).parse(txt.getText().replace(",", "."));
                 if (property.getType().equals(Float.class)) {
                     property.set(number.floatValue());
                 } else if (property.getType().equals(Double.class)) {
