@@ -46,10 +46,12 @@ public class IO {
     }
 
     public static String toText(Property p) {
-        if (p.getType().isAssignableFrom(Color.class)) {
-            Color color = (Color) p.get();
-            return Integer.toHexString(color.getRGB());
-        }
+		if (p.getType().isAssignableFrom(Color.class)) {
+			Color color = (Color) p.get();
+			return Integer.toHexString(color.getRGB());
+		} else if (p.getType().isAssignableFrom(Enum.class)) {
+			return ((Enum) p.get()).name();
+		}
         return "" + p.get();
     }
 
@@ -103,8 +105,10 @@ public class IO {
             return Double.parseDouble(text);
         } else if (Long.class.equals(type)) {
             return Long.parseLong(text);
-        } else if (Color.class.equals(type)) {
-            return new Color((int) Long.parseLong(text, 16));
+		} else if (Color.class.equals(type)) {
+			return new Color((int) Long.parseLong(text, 16));
+		} else if (type.isEnum()) {
+			return Enum.valueOf(type, text);
         }
 
         System.err.println(IO.class.getSimpleName() + " failed to parse \"" + text + "\" of type " + type);
@@ -116,9 +120,14 @@ public class IO {
     }
 
     public static void main(String[] args) {
+		System.out.println("" + Enum.valueOf(Powerup.Type.class, "HEALT_10"));
+
         List<Entity> entities = new ArrayList();
-        entities.add(Box.fromMinMax("abc", 0, 0, 0, 10, 11, 12));
-        entities.add(Box.fromMinMax("abc", -1, -1, -1, 1, 1, 1));
+//        entities.add(Box.fromMinMax("abc", 0, 0, 0, 10, 11, 12));
+//        entities.add(Box.fromMinMax("abc", -1, -1, -1, 1, 1, 1));
+		Entity entity = new Entity();
+		entity.addComponent(Powerup.class);
+		entities.add(entity);
         XMLElement root = writeLevel(entities);
         System.out.println(root.toString());
 

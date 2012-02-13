@@ -50,7 +50,9 @@ public class PropertyListPanel {
     private JComponent createEditor(final Property p) {
         if (p.getType().equals(Color.class)) {
             return new ColorEditor(p).getComponent();
-        }
+        } else if (Enum.class.isAssignableFrom(p.getType())) {
+			return new EnumEditor(p).getComponent();
+		}
         return new NumberEditor(p).getComponent();
     }
 

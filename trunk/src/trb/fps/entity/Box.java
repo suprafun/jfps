@@ -8,7 +8,7 @@ import trb.jsg.util.Vec3;
 public class Box extends Component {
 
     public static Entity fromMinMax(String name, float minx, float miny, float minz, float maxx, float maxy, float maxz) {
-        Entity e = Entity.create(Transform.class, Box.class);
+        Entity e = Entity.create(Meta.class, Transform.class, Box.class);
         e.getComponent(Meta.class).name.set(name);
         Box box = e.getComponent(Box.class);
         box.width.set(maxx - minx);

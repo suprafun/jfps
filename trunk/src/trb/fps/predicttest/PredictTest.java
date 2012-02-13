@@ -294,8 +294,6 @@ public class PredictTest extends JComponent {
         }
     }
 
-
-
     static class DelayedFifo<T> {
         List<TimedEntry> list = Collections.synchronizedList(new ArrayList());
 

@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import trb.fps.entity.Powerup;
 
 public class EditorMenu {
 
@@ -72,5 +73,16 @@ public class EditorMenu {
                 editor.createSpawnPoint();
             }
         });
+
+		JMenu powerups = new JMenu("Powerup");
+		for (final Powerup.Type type : Powerup.Type.values()) {
+			powerups.add(new AbstractAction(type.name()) {
+
+				public void actionPerformed(ActionEvent ae) {
+					editor.createPowerup(type);
+				}
+			});
+		}
+		menu.add(powerups);
     }
 }

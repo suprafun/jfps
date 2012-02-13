@@ -30,6 +30,7 @@ import javax.swing.event.ListSelectionListener;
 import net.miginfocom.swing.MigLayout;
 import trb.fps.ai.NavigationMeshEditor;
 import trb.fps.client.FpsClient;
+import trb.fps.entity.Powerup;
 import trb.fps.server.FpsServer;
 import trb.fps.entity.SpawnPoint;
 import trb.fps.property.PropertyListPanel;
@@ -97,7 +98,7 @@ public final class LevelEditor {
 
         frame.setJMenuBar(new EditorMenu(this).menuBar);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(250, 1024);
+        frame.setSize(300, 1024);
         frame.add(tabbs);
         frame.setLocation(frame.getToolkit().getScreenSize().width-250, 0);
         frame.setVisible(true);
@@ -257,6 +258,14 @@ public final class LevelEditor {
         entities.add(selection);
         updateSwingList(selection);
     }
+
+	public void createPowerup(Powerup.Type type) {
+		Entity selection = Entity.create(Meta.class, Transform.class, Box.class, Powerup.class);
+		selection.getComponent(Meta.class).name.set("Powerup"+type.name());
+		selection.getComponent(Powerup.class).type.set(type);
+		entities.add(selection);
+		updateSwingList(selection);
+	}
 
     public void updateSelectionVisualisation() {
         Entity selection = selectedEntity;
