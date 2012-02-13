@@ -145,24 +145,6 @@
       <property name="Name">Box</property>
     </component>
     <component type="trb.fps.entity.Transform">
-      <property name="PositionX">0.0</property>
-      <property name="PositionY">0.0</property>
-      <property name="PositionZ">0.0</property>
-      <property name="RotationX">0.0</property>
-      <property name="RotationY">0.0</property>
-      <property name="RotationZ">0.0</property>
-    </component>
-    <component type="trb.fps.entity.Box">
-      <property name="Width">1.0</property>
-      <property name="Height">2.0</property>
-      <property name="Depth">1.0</property>
-    </component>
-  </entity>
-  <entity>
-    <component type="trb.fps.entity.Meta">
-      <property name="Name">Box</property>
-    </component>
-    <component type="trb.fps.entity.Transform">
       <property name="PositionX">-24.91517</property>
       <property name="PositionY">-2.7125666</property>
       <property name="PositionZ">-0.99619454</property>
@@ -256,7 +238,7 @@
       <property name="PositionY">-7.3853464</property>
       <property name="PositionZ">-5.9816694</property>
       <property name="RotationX">0.0</property>
-      <property name="RotationY">0.0</property>
+      <property name="RotationY">180.0</property>
       <property name="RotationZ">0.0</property>
     </component>
     <component type="trb.fps.entity.Box">
@@ -265,5 +247,108 @@
       <property name="Depth">1.0</property>
     </component>
     <component type="trb.fps.entity.SpawnPoint"></component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">SpawnPoint</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">0.0</property>
+      <property name="PositionY">0.0</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">90.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">1.0</property>
+      <property name="Height">2.0</property>
+      <property name="Depth">1.0</property>
+    </component>
+    <component type="trb.fps.entity.SpawnPoint"></component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">PowerupHEALTH_10</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-5.173242</property>
+      <property name="PositionY">-6.9439774</property>
+      <property name="PositionZ">-3.788481</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">1.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">1.0</property>
+    </component>
+    <component type="trb.fps.entity.Powerup">
+      <property name="Type">HEALTH_10</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">PowerupAMMO_10</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-28.987387</property>
+      <property name="PositionY">-2.365278</property>
+      <property name="PositionZ">7.0991464</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">1.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">1.0</property>
+    </component>
+    <component type="trb.fps.entity.Powerup">
+      <property name="Type">AMMO_10</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">PowerupHEALTH_10</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">-27.834507</property>
+      <property name="PositionY">-2.4405105</property>
+      <property name="PositionZ">-7.806471</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">1.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">1.0</property>
+    </component>
+    <component type="trb.fps.entity.Powerup">
+      <property name="Type">HEALTH_10</property>
+    </component>
+  </entity>
+  <entity>
+    <component type="trb.fps.entity.Meta">
+      <property name="Name">PowerupAMMO_10</property>
+    </component>
+    <component type="trb.fps.entity.Transform">
+      <property name="PositionX">3.072569</property>
+      <property name="PositionY">0.5052792</property>
+      <property name="PositionZ">0.0</property>
+      <property name="RotationX">0.0</property>
+      <property name="RotationY">0.0</property>
+      <property name="RotationZ">0.0</property>
+    </component>
+    <component type="trb.fps.entity.Box">
+      <property name="Width">1.0</property>
+      <property name="Height">1.0</property>
+      <property name="Depth">1.0</property>
+    </component>
+    <component type="trb.fps.entity.Powerup">
+      <property name="Type">AMMO_10</property>
+    </component>
   </entity>
 </level>
