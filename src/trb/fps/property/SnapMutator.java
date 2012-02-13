@@ -4,9 +4,12 @@ public class SnapMutator implements Mutator {
 
     float snap = 0.25f;
 
-    public SnapMutator() {
+	public SnapMutator() {
+	}
 
-    }
+	public SnapMutator(float snap) {
+		this.snap = snap;
+	}
 
     public Object mutate(Class type, Object valueStart, int amount) {
         if (Float.class == type || float.class == type) {
