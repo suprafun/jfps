@@ -139,7 +139,7 @@ public class FpsClient {
                     fpsCounter = 0;
                 }
 
-                //Thread.sleep(15);
+                Thread.sleep(15);
 				//Display.sync(60);
 			}
 
