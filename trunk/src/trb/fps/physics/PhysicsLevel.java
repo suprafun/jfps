@@ -17,6 +17,7 @@ import javax.vecmath.Vector3f;
 import trb.fps.entity.Box;
 import trb.fps.entity.DeferredSystem;
 import trb.fps.entity.EntityList;
+import trb.fps.entity.Powerup;
 import trb.fps.entity.SpawnPoint;
 import trb.fps.net.PlayerPacket;
 import trb.jsg.Shape;
@@ -49,7 +50,7 @@ public class PhysicsLevel {
         treeNode.updateTree(true);
         for (TreeNode child : treeNode.getChildren()) {
             Box box = nodeBoxMap.get(child);
-            if (box.getComponent(SpawnPoint.class) == null) {
+            if (box.getComponent(SpawnPoint.class) == null && box.getComponent(Powerup.class) == null) {
                 addAsConvexHull(child, false);
             }
         }

@@ -33,10 +33,25 @@ public class Property<T> {
 
     public void set(T v) {
         T old = get();
-        this.value = v;
-        lastChange = changeCounter++;
-        notifyListeners(new PropertyChangeEvent(this, getName(), old, get()));
+		if (!equals(old, v)) {
+			this.value = v;
+			lastChange = changeCounter++;
+			notifyListeners(new PropertyChangeEvent(this, getName(), old, get()));
+		}
     }
+
+	/**
+	 * Checks if a is equal to b and will check for null.
+	 */
+	public static boolean equals(Object a, Object b) {
+		if ((a == null) ^ (b == null)) {
+			return false;
+		}
+		if (a == null) {
+			return true;
+		}
+		return a.equals(b);
+	}
 
     void notifyListeners(PropertyChangeEvent e) {
         for (PropertyChangeListener listener : listeners) {

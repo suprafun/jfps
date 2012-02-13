@@ -17,6 +17,8 @@ import trb.fps.ai.NavmeshParameters;
 import trb.fps.editor.NavigationMeshEditorUser;
 import trb.fps.entity.Box;
 import trb.fps.entity.DeferredSystem;
+import trb.fps.entity.Powerup;
+import trb.fps.entity.Transform;
 import trb.fps.net.ChangeLevelPacket;
 import trb.fps.net.PlayerPacket;
 import trb.jsg.TreeNode;
@@ -94,6 +96,11 @@ public class BotManager {
 				gameLogic.respawn(id);
 			} else {
 				if (path == null && navigator != null) {
+					List<Powerup> powerups = gameLogic.entityList.getComponents(Powerup.class);
+					if (powerups.size() > 0) {
+						Powerup powerup = powerups.get((int) (Math.random() * powerups.size()));
+						target = powerup.getComponent(Transform.class).get().getTranslation();
+					} 
 					path = findPath(player.getBottomPosition(), target);
 				}
 
@@ -105,8 +112,11 @@ public class BotManager {
 						//System.out.println("   "+pos);
 						Vector3 nextPos = new Vector3();
 						if (!path.getTarget(pos.x, pos.y, pos.z, nextPos)) {
-							System.out.println("getTarget failed");
-							path = null;
+							MasterNavRequest<Path>.NavRequest pathRequest = navigator.navigator().getPath(
+									startPos.x, startPos.y, startPos.z, target.x, target.y, target.z);
+							navigator.processAll(true);
+							path = pathRequest.data();
+							System.out.println("getTarget failed "+path);
 							break;
 						}
 						pos.set(nextPos.x, nextPos.y, nextPos.z);
@@ -116,6 +126,11 @@ public class BotManager {
 					//System.out.println(startPos + " " + pos + " " + dir + " " + heading);
 
 					gameLogic.addInput(id, new Input(now, now, 0, 1, heading, 0, false, false));
+
+					if (startPos.epsilonEquals(target, 1f)) {
+						System.out.println("Reached target " + target);
+						path = null;
+					}
 				} else {
 					gameLogic.addInput(id, new Input(now, now, 0, 0, 0, 0, false, false));
 				}
@@ -123,13 +138,32 @@ public class BotManager {
 		}
 
 		Path findPath(Vec3 start, Vec3 goal) {
+			System.out.println("find path " + start + " " + goal);
+			long startTime = System.nanoTime();
 			MasterNavRequest<Path>.NavRequest pathRequest = navigator.navigator().getPath(
 					start.x, start.y, start.z, goal.x, goal.y, goal.z);
 
-			MasterNavRequest<Vector3>.NavRequest nearest = navigator.navigator().getNearestValidLocation(start.x, start.y, start.z);
+			MasterNavRequest<Vector3>.NavRequest nearestStart = navigator.navigator().getNearestValidLocation(start.x, start.y, start.z);
+			MasterNavRequest<Vector3>.NavRequest nearestGoal = navigator.navigator().getNearestValidLocation(goal.x, goal.y, goal.z);
 			navigator.processAll(true);
-			System.out.println(pathRequest.data());
-			System.out.println("" + nearest.data());
+			//System.out.println(pathRequest.data());
+			//System.out.println("" + nearest.data());
+
+			long endTime = System.nanoTime();
+			double deltaTime = (endTime-startTime) / 1E9;
+			//System.out.println("findPath "+ deltaTime);
+
+			if (pathRequest.data() == null) {
+				System.err.println("  failed " + nearestStart.data());
+				Vector3 newStart = nearestStart.data();
+				Vector3 newGoal = nearestGoal.data();
+				pathRequest = navigator.navigator().getPath(
+						newStart.x, newStart.y, newStart.z, newGoal.x, newGoal.y, newGoal.z);
+				navigator.processAll(true);
+				if (pathRequest.data() == null) {
+					System.err.println("    failed again. Giving up");
+				}
+			}
 
 			return pathRequest.data();
 //			if (path == null) {

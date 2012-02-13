@@ -9,6 +9,7 @@ import org.critterai.nmgen.NavmeshGenerator;
 import org.critterai.nmgen.TriangleMesh;
 import trb.fps.ai.NavigationMeshCreator;
 import trb.fps.entity.Box;
+import trb.fps.entity.Powerup;
 import trb.fps.entity.SpawnPoint;
 import trb.jsg.Shape;
 import trb.jsg.TreeNode;
@@ -29,7 +30,7 @@ public class NavigationMeshEditorUser implements NavigationMeshCreator {
 		Vec3 coord = new Vec3();
 		for (Entry<Box, TreeNode> entry : boxNodeMap.entrySet()) {
 			Box box = entry.getKey();
-			if (box.getComponent(SpawnPoint.class) == null) {
+			if (box.getComponent(SpawnPoint.class) == null && box.getComponent(Powerup.class) == null) {
 				TreeNode treeNode = entry.getValue();
 				for (Shape shape : treeNode.getAllShapesInTree()) {
 					// TODO: use local2world of all shapes in tree
