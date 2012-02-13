@@ -21,7 +21,8 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
     public boolean wasJumping = false;
     public float headingRad = 0f;
     public float tiltRad = 0f;
-    private int health = 0;
+	private int ammo = 20;
+	private int health = 0;
     private int kills = 0;
     private int deaths = 0;
 
@@ -41,7 +42,8 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
         this.wasJumping = copy.wasJumping;
         this.headingRad = copy.headingRad;
         this.tiltRad = copy.tiltRad;
-        this.health = copy.health;
+		this.ammo = copy.ammo;
+		this.health = copy.health;
         this.kills = copy.kills;
         this.deaths = copy.deaths;
     }
@@ -169,18 +171,11 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
         return new Mat4().setTranslation_(getBottomPosition()).setEuler(new Vec3(0, headingRad, 0));
     }
 
-    public void init(String name) {
-        this.name = name;
-        connected = true;
-        kills = 0;
-        deaths = 0;
-        health = 0;
-    }
-
     public void respawn(Mat4 location) {
         position = location.getTranslation().toFloats();
         headingRad = location.getEuler().y;
         tiltRad = 0f;
+		ammo = 20;
         health = 100;
         verticalVelocity = 0f;
         wasOnGround = false;
