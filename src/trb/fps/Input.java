@@ -24,6 +24,7 @@ public class Input implements TimedInput {
         jump = false;
     }
 
+
 	public Input(long time, long serverTime, int moveX, int moveY
             , float headingRad, float tiltRad, boolean fire, boolean jump) {
         this.time = time;

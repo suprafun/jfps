@@ -11,6 +11,7 @@ import trb.fps.property.PropertyListPanel;
 import trb.fps.property.PropertyOwner;
 
 public class NavmeshParameters extends PropertyOwner {
+	public final Property<Boolean> visualise = add("Visualise", true);
     public final Property<Float> cellSize = add("CellSize", 0.1f);
     public final Property<Float> cellHeight = add("CellHeight", 0.1f);
     public final Property<Float> minTraversableHeight = add("MinTraversableHeight", 1.7f);

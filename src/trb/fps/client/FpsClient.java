@@ -112,7 +112,7 @@ public class FpsClient {
                 }
 
                 //System.out.println(level.physicsLevel + " " + level.physicsLevel.dynamicsWorld.getCollisionObjectArray().size());
-                level.predictedState.update(new PlayerUpdator(input, level.physicsLevel));
+                level.predictedState.update(new PlayerUpdator(input, level.physicsLevel, level.levelData));
                 LevelPacket levelData = null;
                 if (!in.isEmpty()) {
                     synchronized (in) {
@@ -186,7 +186,11 @@ public class FpsClient {
      */
     Input createInput(long time, long serverTime, PlayerPacket player) {
         if (inputState.wasKeyPressed(Keyboard.KEY_RETURN)) {
-            client.sendTCP("respawn");
+			if (level.levelData.isGameOver()) {
+				client.sendTCP("restart");
+			} else {
+				client.sendTCP("respawn");
+			}
         }
         if (inputState.wasKeyPressed(Keyboard.KEY_HOME)) {
             level.editorNavigation.enabled.set(!level.editorNavigation.enabled.get());

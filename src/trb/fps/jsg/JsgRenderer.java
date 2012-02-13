@@ -88,8 +88,8 @@ public class JsgRenderer implements FpsRenderer {
 
         playerModels = createModels(LevelPacket.MAX_PLAYERS, renderPass.getRootNode()
                 , JsgBox.createFromPosSize(new Vec3(0, 1, 0), new Vec3(0.5f, 2f, 0.08f)));
-        bulletModels = createModels(LevelPacket.MAX_BULLETS, renderPass.getRootNode()
-                , JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
+//        bulletModels = createModels(LevelPacket.MAX_BULLETS, renderPass.getRootNode()
+//                , JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
 
         // add renderpass to scene graph
         SceneGraph sceneGraph = new SceneGraph();
@@ -175,15 +175,15 @@ public class JsgRenderer implements FpsRenderer {
     }
 
     private void renderBullets(LevelPacket level) {
-        for (int i = 0; i < level.bullets.length; i++) {
-            BulletPacket bullet = level.bullets[i];
-            for (Shape shape : bulletModels[i].getAllShapesInTree()) {
-                shape.setVisible(bullet.alive);
-            }
-            if (bullet.alive) {
-                Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, level.serverTimeMillis);
-                bulletModels[i].setTransform(new Mat4().setTranslation_(bulletPos));
-            }
-        }
+//        for (int i = 0; i < level.bullets.length; i++) {
+//            BulletPacket bullet = level.bullets[i];
+//            for (Shape shape : bulletModels[i].getAllShapesInTree()) {
+//                shape.setVisible(bullet.alive);
+//            }
+//            if (bullet.alive) {
+//                Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, level.serverTimeMillis);
+//                bulletModels[i].setTransform(new Mat4().setTranslation_(bulletPos));
+//            }
+//        }
     }
 }

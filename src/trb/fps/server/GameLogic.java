@@ -24,7 +24,7 @@ import trb.jsg.util.Vec3;
 
 public class GameLogic {
 
-    private static final float PLAYER_RADIUS = 3f;
+    private static final float PLAYER_RADIUS = 1.5f;
     private static final long BULLET_TIMEOUT_MILLIS = 5000;
     public static final BulletStats[] bulletStats = {
         new BulletStats(10, 50f)
@@ -33,7 +33,7 @@ public class GameLogic {
     private static final Vec3 BULLET_SPAWN_OFFSET = new Vec3(0, 1.4f, 0);
     private final long startTimeMillis = currentTimeMillis();
     private long prevTime = 0;
-    private long time = 0;
+    public long time = 0;
 
     EntityList entityList = new EntityList();
     PhysicsLevel physicsLevel = new PhysicsLevel(entityList);
@@ -75,32 +75,29 @@ public class GameLogic {
     }
 
     public void updateBullets() {
-        int liveBullets = 0;
-        for (BulletPacket bullet : level.bullets) {
-            if (bullet.alive) {
-                liveBullets++;
-                if ((time - bullet.spawnTime) > BULLET_TIMEOUT_MILLIS) {
-                    bullet.alive = false;
-                } else {
-                    CollisionInfo collision = collideBullet(bullet);
-                    if (collision.type == CollisionInfo.Type.Player) {
-                        PlayerPacket player = level.getPlayer(collision.playerId);
-                        player = player.takeDamage(bulletStats[bullet.bulletType].damage);
-                        if (player.getHealth() <= 0) {
-                            player = player.incDeaths();
-                            level.setPlayer(bullet.shooterPlayerId, level.getPlayer(bullet.shooterPlayerId).incKills());
-                        }
-                        bullet.alive = false;
-                        level.setPlayer(collision.playerId, player);
-                        System.out.println("bullet from " + bullet.shooterPlayerId
-                                + " collided with " + collision.playerId);
-                    } else if (collision.type == CollisionInfo.Type.World) {
-                        bullet.alive = false;
-                    }
-                    // TODO: send bullet hit something event to clients for visualisation
-                }
-            }
-        }
+        for (int bulletIdx = level.bullets.size() -1 ; bulletIdx >= 0; bulletIdx--) {
+			BulletPacket bullet = level.bullets.get(bulletIdx);
+			if ((time - bullet.spawnTime) > BULLET_TIMEOUT_MILLIS) {
+				level.bullets.remove(bulletIdx);
+			} else {
+				CollisionInfo collision = collideBullet(bullet);
+				if (collision.type == CollisionInfo.Type.Player) {
+					PlayerPacket player = level.getPlayer(collision.playerId);
+					player = player.takeDamage(bulletStats[bullet.bulletType].damage);
+					if (player.getHealth() <= 0) {
+						player = player.incDeaths();
+						level.setPlayer(bullet.shooterPlayerId, level.getPlayer(bullet.shooterPlayerId).incKills());
+					}
+					level.bullets.remove(bulletIdx);
+					level.setPlayer(collision.playerId, player);
+					System.out.println("bullet from " + bullet.shooterPlayerId
+							+ " collided with " + collision.playerId);
+				} else if (collision.type == CollisionInfo.Type.World) {
+					level.bullets.remove(bulletIdx);
+				}
+				// TODO: send bullet hit something event to clients for visualisation
+			}
+		}
     }
 
     /**
@@ -193,21 +190,20 @@ public class GameLogic {
     /**
      * @param fireServerTime server time as seen by shooter
      */
-    public void fireBullet(PlayerPacket player, long fireServerTime) {
-        System.out.println("fireBullet " + player.getId());
-        for (BulletPacket bullet : level.bullets) {
-            if (!bullet.alive) {
-                bullet.alive = true;
-                bullet.shooterPlayerId = player.getId();
-                bullet.setStartPosition(player.getPosition().add_(BULLET_SPAWN_OFFSET));
-                bullet.setStartDirection(player.getTransform().transformAsVector(new Vec3(0, 0, -1)));
-                System.out.println("fireBullet time diff: " + (fireServerTime - time));
-                bullet.spawnTime = fireServerTime;
-                return;
-            }
-        }
-
-        System.err.println("No more bullets available");
+    public boolean fireBullet(PlayerPacket player, long fireServerTime) {
+		if (player.ammo <= 0 || player.getHealth() <= 0 || level.isGameOver()) {
+			return false;
+		}
+		BulletPacket bullet = new BulletPacket();
+		bullet.id = BulletPacket.nextId++;
+		bullet.shooterPlayerId = player.getId();
+		bullet.setStartPosition(player.getPosition().add_(BULLET_SPAWN_OFFSET));
+		bullet.setStartDirection(player.getTransform().transformAsVector(new Vec3(0, 0, -1)));
+		System.out.println("fireBullet time diff: " + (fireServerTime - time));
+		bullet.spawnTime = fireServerTime;
+		level.bullets.add(bullet);
+		player.ammo--;
+		return true;
     }
 
     public boolean addPlayer(int id, String name) {
@@ -230,7 +226,7 @@ public class GameLogic {
 
     public void respawn(int id) {
         PlayerPacket playerPacket = level.getPlayer(id);
-        if (playerPacket.getHealth() <= 0) {
+		if (playerPacket.getHealth() <= 0) {
             playerPacket.respawn(getRandomSpawnPoint());
         }
     }
@@ -255,14 +251,20 @@ public class GameLogic {
         System.out.println("changeLevel "+entityList.getAll().size());
         this.entityList = entityList;
         physicsLevel = new PhysicsLevel(entityList);
-
-        for (int i=0; i<level.players.length; i++) {
-            level.players[i] = level.players[i].setHealth(0).setKills(0).setDeaths(0);
-        }
-
 		powerupManager = new PowerupManager(entityList);
 		level.powerupsPickupTime = new long[powerupManager.size()];
+		restart();
     }
+
+	public void restart() {
+		if (level.isGameOver()) {
+			for (int i = 0; i < level.players.length; i++) {
+				level.players[i] = level.players[i].setHealth(0).setKills(0).setDeaths(0);
+			}
+
+			level.powerupsPickupTime = new long[level.powerupsPickupTime.length];
+		}
+	}
 
     public class Player {
 
@@ -270,6 +272,7 @@ public class GameLogic {
         int slotIdx;
         Input prevInput = null;
         List<Input> inputList = new ArrayList();
+		long lastFire = 0;
 
         public Player(int id, int slotIdx) {
             this.id = id;
@@ -287,24 +290,24 @@ public class GameLogic {
                 level.setPlayer(id, player);
             }
 
-            if (player.getHealth() > 0) {
-                for (Input input : inputList) {
-                    player = new PlayerUpdator(input, physicsLevel).update(player);
-                }
-                level.setPlayer(id, player);
+			for (Input input : inputList) {
+				player = new PlayerUpdator(input, physicsLevel, level).update(player);
+			}
+			level.setPlayer(id, player);
 
-                long fireServerTime = -1;
-                boolean fire = false;
-                for (Input input : inputList) {
-                    fire |= input.fire;
-                    if (input.fire) {
-                        fireServerTime = input.serverTime;
-                    }
-                }
-                if (fire) {
-                    fireBullet(player, fireServerTime);
-                }
-            }
+			long fireServerTime = -1;
+			boolean fire = false;
+			for (Input input : inputList) {
+				fire |= input.fire;
+				if (input.fire) {
+					fireServerTime = input.serverTime;
+				}
+			}
+			if (fire && lastFire < time - 200) {
+				if (fireBullet(player, fireServerTime)) {
+					lastFire = time;
+				}
+			}
             inputList.clear();
         }
     }

@@ -4,7 +4,10 @@ import trb.jsg.util.Vec3;
 
 public class BulletPacket {
 
-    public boolean alive = false;
+	public static int nextId = 0;
+
+	public int id = 0;
+    //public boolean alive = false;
     public int shooterPlayerId = 0;
     public int bulletType = 0;
     public float[] startPosition = new float[3];

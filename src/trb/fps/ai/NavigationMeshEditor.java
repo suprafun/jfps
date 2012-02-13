@@ -15,6 +15,7 @@ import org.critterai.nav.MasterPath.Path;
 import org.critterai.nav.NavUtil;
 import org.critterai.nmgen.NavmeshGenerator;
 import org.critterai.nmgen.TriangleMesh;
+import trb.fps.jsg.JsgDeferredRenderer;
 import trb.jsg.Shape;
 import trb.jsg.State.StencilFuncParams;
 import trb.jsg.State.StencilOpParams;
@@ -39,7 +40,16 @@ public class NavigationMeshEditor {
         parameters.listeners.addListener(new PropertyChangeListener() {
 
             public void propertyChange(PropertyChangeEvent evt) {
-                generateNavMesh();
+				if (evt.getSource() == parameters.visualise) {
+					Renderer.invokeLater(new Runnable() {
+
+						public void run() {
+							JsgDeferredRenderer.setVisible(treeNode, parameters.visualise.get());
+						}
+					});
+				} else {
+					generateNavMesh();
+				}
             }
         });
     }

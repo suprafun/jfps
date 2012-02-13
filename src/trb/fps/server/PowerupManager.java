@@ -16,6 +16,7 @@ public class PowerupManager {
 		for (Powerup powerup : entityList.getComponents(Powerup.class)) {
 			powerupIndexes.add(powerup, idx++);
 		}
+		System.out.println("PowerupManager " + size());
 	}
 
 	public int size() {

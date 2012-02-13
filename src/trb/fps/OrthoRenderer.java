@@ -37,10 +37,10 @@ public class OrthoRenderer implements FpsRenderer {
         }
 
         for (BulletPacket bullet : level.bullets) {
-            if (bullet.alive) {
-                Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, level.serverTimeMillis);
-                fillRect(Color.yellow, bulletPos.x-5, bulletPos.z-5, 10, 10);
-            }
+//            if (bullet.alive) {
+//                Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, level.serverTimeMillis);
+//                fillRect(Color.yellow, bulletPos.x-5, bulletPos.z-5, 10, 10);
+//            }
         }
 
 		Display.update();

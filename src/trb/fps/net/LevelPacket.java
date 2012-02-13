@@ -6,20 +6,16 @@ import java.util.List;
 public class LevelPacket {
 
 	public static final int MAX_PLAYERS = 4;
-    public static final int MAX_BULLETS = MAX_PLAYERS * 4;
     
     public long serverTimeMillis = 0l;
     public int killLimit = 5;
     public PlayerPacket[] players = new PlayerPacket[MAX_PLAYERS];
-    public BulletPacket[] bullets = new BulletPacket[MAX_BULLETS];
+	public List<BulletPacket> bullets = new ArrayList();
 	public long[] powerupsPickupTime = {};
 
 	public LevelPacket() {
         for (int i = 0; i < players.length; i++) {
             players[i] = new PlayerPacket(-1, i, "");
-        }
-        for (int i = 0; i < bullets.length; i++) {
-            bullets[i] = new BulletPacket();
         }
 	}
 

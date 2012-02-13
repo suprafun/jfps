@@ -46,10 +46,9 @@ public class FpsServer {
                 gameLogic.update();
                 for (Connection connection : server.getConnections()) {
                     connection.sendTCP(gameLogic.level);
-                    //System.out.println("" + connection.sendTCP(gameLogic.level));
                 }
                 server.update(0);
-                Thread.sleep(100);
+                Thread.sleep(33);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -101,8 +100,10 @@ public class FpsServer {
             } else if (object instanceof Input) {
                 gameLogic.addInput(connection.getID(), (Input) object);
             } else if (object instanceof String) {
-                if ("respawn".equals(object)) {
-                    gameLogic.respawn(connection.getID());
+				if ("respawn".equals(object)) {
+					gameLogic.respawn(connection.getID());
+				} else if ("restart".equals(object)) {
+					gameLogic.restart();
                 }
             }
         }
