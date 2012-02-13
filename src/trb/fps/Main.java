@@ -44,7 +44,8 @@ public class Main {
 	}
 
 	public static void initKryo(Kryo kryo) {
-        kryo.register(float[].class);
+		kryo.register(float[].class);
+		kryo.register(long[].class);
         kryo.register(Input.class);
         kryo.register(PlayerPacket.class);
         kryo.register(PlayerPacket[].class);

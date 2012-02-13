@@ -10,17 +10,6 @@ import trb.fps.property.Property;
 import trb.fps.property.PropertyListPanel;
 import trb.fps.property.PropertyOwner;
 
-//import javax.swing.JComponent;
-//import javax.swing.JPanel;
-//import javax.swing.JScrollPane;
-//import net.miginfocom.swing.MigLayout;
-//import no.hrp.hvrc.property.DefaultPropertyOwner;
-//import no.hrp.hvrc.property.Property;
-//import no.hrp.hvrc.property.editor.SetDirectly;
-//import no.hrp.hvrc.utils.swing.collapse.CollapsableHeader;
-//import no.hrp.hvrc.utils.swing.collapse.CollapsablePane;
-//import org.critterai.nmgen.NavmeshGenerator;
-
 public class NavmeshParameters extends PropertyOwner {
     public final Property<Float> cellSize = add("CellSize", 0.1f);
     public final Property<Float> cellHeight = add("CellHeight", 0.1f);
@@ -36,7 +25,7 @@ public class NavmeshParameters extends PropertyOwner {
     public final Property<Float> maxEdgeLength = add("MaxEdgeLength", 4f);
     public final Property<Float> edgeMaxDeviation = add("EdgeMaxDeviation", 0.1f);
     public final Property<Integer> maxVertsPerPoly = add("MaxVertsPerPoly", 6);
-    public final Property<Float> contourSampleDistance = add("ContourSampleDistance", 0.2f);
+    public final Property<Float> contourSampleDistance = add("ContourSampleDistance", 0.5f);//0.2
     public final Property<Float> contourMaxDeviation = add("ContourMaxDeviation", 0.1f);
 
     public NavmeshGenerator create() {

@@ -22,7 +22,8 @@ public class JsgHud {
 
     private TexturedQuad quad;
 
-    private final Font font = new Font("SansSerif", Font.BOLD, 14);
+	private final Font font = new Font("SansSerif", Font.BOLD, 14);
+	private final Font font2 = new Font("SansSerif", Font.BOLD, 12);
 
     public JsgHud() {
         // ortho mode with a 1:1 mapping to the screen
@@ -68,12 +69,21 @@ public class JsgHud {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN, 0));
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
         g.setComposite(originalComposite);
-        g.setFont(font);
-        for (int i=0; i<sortedPlayers.size(); i++) {
-            PlayerPacket p = sortedPlayers.get(i);
+        g.setFont(font2);
+
+		g.setPaint(new Color(0xffffffff, true));
+		int y = 20;
+		g.drawString("Kills", 5, y);
+		g.drawString("Deaths", 40, y);
+		g.drawString("Health", 80, y);
+		g.drawString("Ammo", 120, y);
+		g.drawString("Nick", 170, y);
+
+		g.setFont(font);
+        for (PlayerPacket p : sortedPlayers) {
             if (p.isConnected()) {
-                int y = 20 + i * 20;
-                if (i == localPlayerIdx) {
+                y += 20;
+                if (p.getSlotIdx() == localPlayerIdx) {
                     g.setPaint(new Color(200, 200, 64, 120));
                 } else {
                     g.setPaint(new Color(0, 0, 0, 100));
@@ -82,15 +92,16 @@ public class JsgHud {
 
                 g.setPaint(new Color(0xffffffff, true));
                 g.drawString("" + p.getKills(), 5, y);
-                g.drawString("" + p.getDeaths(), 25, y);
-                g.drawString("" + p.getHealth(), 45, y);
-                g.drawString(p.getName(), 75, y);
+                g.drawString("" + p.getDeaths(), 40, y);
+				g.drawString("" + p.getHealth(), 80, y);
+				g.drawString("" + p.ammo, 120, y);
+                g.drawString(p.getName(), 170, y);
             }
         }
 
 
         if (level.isGameOver()) {
-            int y = 30 + (level.players.length+1) * 20;
+            y = 30 + (level.players.length+1) * 20;
             g.setPaint(new Color(0, 0, 0, 100));
             g.fillRect(3, y - 13, 256, 16);
 
@@ -98,7 +109,7 @@ public class JsgHud {
             g.drawString("Game Over", 3, y);
         } else {
             if (level.players[localPlayerIdx].getHealth() <= 0) {
-                int y = 30 + level.players.length * 20;
+                y = 30 + level.players.length * 20;
                 g.setPaint(new Color(0, 0, 0, 100));
                 g.fillRect(3, y - 13, 256, 16);
 
@@ -113,7 +124,7 @@ public class JsgHud {
         Collections.sort(connectedPlayers, new Comparator<PlayerPacket>() {
 
             public int compare(PlayerPacket o1, PlayerPacket o2) {
-                return o1.getKills() - o2.getKills();
+                return o2.getKills() - o1.getKills();
             }
         });
 

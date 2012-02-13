@@ -21,7 +21,7 @@ public class PlayerPacket implements TimedState<PlayerPacket, PlayerUpdator> {
     public boolean wasJumping = false;
     public float headingRad = 0f;
     public float tiltRad = 0f;
-	private int ammo = 20;
+	public int ammo = 20;
 	private int health = 0;
     private int kills = 0;
     private int deaths = 0;

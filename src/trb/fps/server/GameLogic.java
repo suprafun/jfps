@@ -37,6 +37,7 @@ public class GameLogic {
 
     EntityList entityList = new EntityList();
     PhysicsLevel physicsLevel = new PhysicsLevel(entityList);
+	private PowerupManager powerupManager = new PowerupManager(entityList);
     public final LevelPacket level = new LevelPacket();
     private final Map<Integer, Player> players = new HashMap();
     
@@ -238,7 +239,6 @@ public class GameLogic {
         Mat4 mat = new Mat4();
         List<SpawnPoint> spawnPoints = entityList.getComponents(SpawnPoint.class);
         if (spawnPoints.size() > 0) {
-			System.out.println("AAAAAAAA "+spawnPoints.size());
             int idx = new Random().nextInt(spawnPoints.size());
             return spawnPoints.get(idx).getComponent(Transform.class).get();
         }
@@ -259,6 +259,9 @@ public class GameLogic {
         for (int i=0; i<level.players.length; i++) {
             level.players[i] = level.players[i].setHealth(0).setKills(0).setDeaths(0);
         }
+
+		powerupManager = new PowerupManager(entityList);
+		level.powerupsPickupTime = new long[powerupManager.size()];
     }
 
     public class Player {
@@ -275,8 +278,12 @@ public class GameLogic {
 
         private void update() {
             PlayerPacket player = level.getPlayer(id);
-            if (player.getPosition().y < -100) {
-                player = player.setHealth(0);
+
+			player = powerupManager.pickup(player, level.powerupsPickupTime, time);
+			level.setPlayer(id, player);
+
+            if (player.getPosition().y < -100 && player.getHealth() > 0) {
+                player = player.setHealth(0).setDeaths(player.getDeaths()+1);
                 level.setPlayer(id, player);
             }
 

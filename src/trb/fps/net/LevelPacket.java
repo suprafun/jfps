@@ -12,6 +12,7 @@ public class LevelPacket {
     public int killLimit = 5;
     public PlayerPacket[] players = new PlayerPacket[MAX_PLAYERS];
     public BulletPacket[] bullets = new BulletPacket[MAX_BULLETS];
+	public long[] powerupsPickupTime = {};
 
 	public LevelPacket() {
         for (int i = 0; i < players.length; i++) {
