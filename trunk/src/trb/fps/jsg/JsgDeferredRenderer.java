@@ -1,4 +1,6 @@
 package trb.fps.jsg;
+import java.util.ArrayList;
+import java.util.List;
 import javax.vecmath.Point2f;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -46,7 +48,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
     private long startTimeMillis = System.currentTimeMillis();
     public RenderPass basePass;
     private JsgCharacter[] playerModels;
-    private TreeNode[] bulletModels;
+    private List<TreeNode> bulletModels = new ArrayList();
     private JsgHud hud;
     private Level level;
     private final Shader shader = new Shader(BasePass.baseProgram);
@@ -100,20 +102,6 @@ public class JsgDeferredRenderer implements FpsRenderer {
 
         hud = new JsgHud();
         sceneGraph.addRenderPass(hud.renderPass);
-
-		bulletModels = createModels(LevelPacket.MAX_BULLETS, FinalPass.transparentPass.getRootNode(), JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
-		for (TreeNode bulletModel : bulletModels) {
-			for (Shape bulletShape : bulletModel.getAllShapesInTree()) {
-				bulletShape.setSortOrder(SortOrder.BACK_TO_FRONT);
-				bulletShape.getState().setMaterial(null);
-				bulletShape.getState().setShader(null);
-				bulletShape.getState().setBlendEnabled(false);
-				bulletShape.getState().setBlendSrcFunc(BlendSrcFunc.ONE);
-				bulletShape.getState().setBlendDstFunc(BlendDstFunc.ONE);
-				bulletShape.getState().setDepthWriteEnabled(false);
-				//System.out.println("AAAAAAAAAA change bullet");
-			}
-		}
 
         // create a renderer that renders the scenegraph
         renderer = new Renderer(sceneGraph);
@@ -206,16 +194,43 @@ public class JsgDeferredRenderer implements FpsRenderer {
 
     private void renderBullets(Level level) {
         LevelPacket levelData = level.levelData;
-        for (int i = 0; i < levelData.bullets.length; i++) {
-            BulletPacket bullet = levelData.bullets[i];
-            for (Shape shape : bulletModels[i].getAllShapesInTree()) {
-                shape.setVisible(bullet.alive);
-            }
-            if (bullet.alive) {
-                long time = level.interpolatedServerState.getCurrentState().serverTime;
-                Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, time);
-                bulletModels[i].setTransform(new Mat4().setTranslation_(bulletPos));
-            }
+        for (int i = 0; i < levelData.bullets.size(); i++) {
+            BulletPacket bullet = levelData.bullets.get(i);
+			if (bulletModels.size() <= i) {
+				createBulletModel();
+			}
+			long time = level.interpolatedServerState.getCurrentState().serverTime;
+			Vec3 bulletPos = GameLogic.getPositionAtTime(bullet, time);
+			setVisible(bulletModels.get(i), true);
+			bulletModels.get(i).setTransform(new Mat4().setTranslation_(bulletPos));
         }
+		for (int i=levelData.bullets.size(); i<bulletModels.size(); i++) {
+			setVisible(bulletModels.get(i), false);
+		}
     }
+
+	public static void setVisible(TreeNode node, boolean b) {
+		for (Shape shape : node.getAllShapesInTree()) {
+			shape.setVisible(b);
+		}
+	}
+
+	private void createBulletModel() {
+		Shape shape = new Shape();
+		shape.setSortOrder(SortOrder.BACK_TO_FRONT);
+		shape.getState().setMaterial(null);
+		shape.getState().setShader(null);
+		shape.getState().setBlendEnabled(false);
+		shape.getState().setBlendSrcFunc(BlendSrcFunc.ONE);
+		shape.getState().setBlendDstFunc(BlendDstFunc.ONE);
+		shape.getState().setDepthWriteEnabled(false);
+		applyState(shape, shader);
+		shape.setVertexData(JsgBox.createFromPosSize(new Vec3(0, 0, 0), new Vec3(0.5f, 0.5f, 0.5f)));
+
+		TreeNode node = new TreeNode();
+		node.addShape(shape);
+		FinalPass.transparentPass.getRootNode().addChild(node);
+		bulletModels.add(node);
+		System.out.println("deferred renderer create bullet model " + bulletModels.size());
+	}
 }

@@ -1,5 +1,7 @@
 package trb.fps.server;
 
+import com.bulletphysics.collision.dispatch.CollisionWorld.ClosestRayResultCallback;
+import com.bulletphysics.dynamics.RigidBody;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -91,50 +93,63 @@ public class BotManager {
 				return;
 			}
 
-			long now = System.currentTimeMillis();
+
+			long now = gameLogic.time;
 			if (player.getHealth() <= 0) {
 				gameLogic.respawn(id);
 			} else {
-				if (path == null && navigator != null) {
-					List<Powerup> powerups = gameLogic.entityList.getComponents(Powerup.class);
-					if (powerups.size() > 0) {
-						Powerup powerup = powerups.get((int) (Math.random() * powerups.size()));
-						target = powerup.getComponent(Transform.class).get().getTranslation();
-					} 
-					path = findPath(player.getBottomPosition(), target);
-				}
-
-				if (path != null) {
-					Vec3 startPos = player.getBottomPosition();
-					Vec3 pos = new Vec3(startPos);
-					int maxIter = 10;
-					while (!pos.epsilonEquals(target, 0.5f) && pos.epsilonEquals(startPos, 0.5f) && maxIter-- > 0) {
-						//System.out.println("   "+pos);
-						Vector3 nextPos = new Vector3();
-						if (!path.getTarget(pos.x, pos.y, pos.z, nextPos)) {
-							MasterNavRequest<Path>.NavRequest pathRequest = navigator.navigator().getPath(
-									startPos.x, startPos.y, startPos.z, target.x, target.y, target.z);
-							navigator.processAll(true);
-							path = pathRequest.data();
-							System.out.println("getTarget failed "+path);
-							break;
-						}
-						pos.set(nextPos.x, nextPos.y, nextPos.z);
-					}
-					Vec3 dir = new Vec3(pos).sub_(startPos);
-					float heading = (float) Math.atan2(-dir.x, -dir.z);
-					//System.out.println(startPos + " " + pos + " " + dir + " " + heading);
-
-					gameLogic.addInput(id, new Input(now, now, 0, 1, heading, 0, false, false));
-
-					if (startPos.epsilonEquals(target, 1f)) {
-						System.out.println("Reached target " + target);
-						path = null;
-					}
+				PlayerPacket visiblePlayer = getClosestVisiblePlayer();
+				if (visiblePlayer != null && player.ammo > 0) {
+					Vec3 dir = new Vec3(visiblePlayer.getPosition()).sub_(player.getPosition());
+					float headingRad = getHeadingRad(dir);
+					float tiltRad = (float) Math.asin(dir.y / dir.length());
+					gameLogic.addInput(id, new Input(now, now, 0, 0, headingRad, tiltRad, true, false));
 				} else {
-					gameLogic.addInput(id, new Input(now, now, 0, 0, 0, 0, false, false));
+					if (path == null && navigator != null) {
+						List<Powerup> powerups = gameLogic.entityList.getComponents(Powerup.class);
+						if (powerups.size() > 0) {
+							Powerup powerup = powerups.get((int) (Math.random() * powerups.size()));
+							target = powerup.getComponent(Transform.class).get().getTranslation();
+						}
+						path = findPath(player.getBottomPosition(), target);
+					}
+
+					if (path != null) {
+						Vec3 startPos = player.getBottomPosition();
+						Vec3 pos = new Vec3(startPos);
+						int maxIter = 10;
+						while (!pos.epsilonEquals(target, 0.5f) && pos.epsilonEquals(startPos, 0.5f) && maxIter-- > 0) {
+							//System.out.println("   "+pos);
+							Vector3 nextPos = new Vector3();
+							if (!path.getTarget(pos.x, pos.y, pos.z, nextPos)) {
+								MasterNavRequest<Path>.NavRequest pathRequest = navigator.navigator().getPath(
+										startPos.x, startPos.y, startPos.z, target.x, target.y, target.z);
+								navigator.processAll(true);
+								path = pathRequest.data();
+								System.out.println("getTarget failed " + path);
+								break;
+							}
+							pos.set(nextPos.x, nextPos.y, nextPos.z);
+						}
+						Vec3 dir = new Vec3(pos).sub_(startPos);
+						float heading = getHeadingRad(dir);
+						//System.out.println(startPos + " " + pos + " " + dir + " " + heading);
+
+						gameLogic.addInput(id, new Input(now, now, 0, 1, heading, 0, false, false));
+
+						if (startPos.epsilonEquals(target, 1f)) {
+							System.out.println("Reached target " + target);
+							path = null;
+						}
+					} else {
+						gameLogic.addInput(id, new Input(now, now, 0, 0, 0, 0, false, false));
+					}
 				}
 			}
+		}
+
+		private float getHeadingRad(Vec3 dir) {
+			return (float) Math.atan2(-dir.x, -dir.z);
 		}
 
 		Path findPath(Vec3 start, Vec3 goal) {
@@ -166,57 +181,29 @@ public class BotManager {
 			}
 
 			return pathRequest.data();
-//			if (path == null) {
-//				System.out.println("findPath no data");
-//				return;
-//			}
-//			int[] pathIndices = new int[path.pathPolyCount() * 3];
-//			float[] pathVerts = new float[path.pathVertCount() * 3];
-//			path.getPathPolys(pathVerts, pathIndices);
-//			//treeNode.addShape(createMeshGeometry(pathVerts, pathIndices, true));
-//			System.out.println("index count "+pathIndices.length);
-//
-//			finalPath = "found";
-//
-//			List<Point3f> pathLineCoords = new ArrayList();
-//			Vector3 pos = new Vector3(start.x, start.y, start.z);
-//			Vector3 nextPos = new Vector3();
-//			int maxIter = 100;
-//			while (!pos.sloppyEquals(goal.x, goal.y, goal.z, 0.1f)) {
-//				pathLineCoords.add(new Point3f(pos.x, pos.y+0.1f, pos.z));
-//				path.getTarget(pos.x, pos.y, pos.z, nextPos);
-//				if (pos.sloppyEquals(nextPos, 0.1f)) {
-//					break;
-//				}
-//				pos.set(nextPos);
-//				if (maxIter-- < 0) {
-//					break;
-//				}
-//			}
-//			pathLineCoords.add(new Point3f(pos.x, pos.y, pos.z));
-//			if (pathLineCoords.size() > 1) {
-//				int[] indices = new int[(pathLineCoords.size()-1)*2];
-//				for (int i=0; i<pathLineCoords.size()-1; i++) {
-//					indices[i*2] = i;
-//					indices[i*2+1] = i+1;
-//				}
-//				float[] coords = SGUtil.toFloats(pathLineCoords);
-//				float[] colors = new float[coords.length];
-//				for (int i=0; i<colors.length; i+=3) {
-//					colors[i] = 0f;
-//					colors[i+1] = 1f;
-//					colors[i+2] = 0f;
-//				}
-//
-//				VertexData vertexData = new VertexData(coords, null, colors, 2, null, indices);
-//				vertexData.mode = VertexData.Mode.LINES;
-//				Shape shape = new Shape(vertexData);
-//				shape.getState().setStencilTestEnabled(true);
-//				shape.getState().setStencilFunc(new StencilFuncParams(StencilFunc.ALWAYS, 1, 1));
-//				shape.getState().setStencilOp(new StencilOpParams(StencilAction.KEEP, StencilAction.KEEP, StencilAction.REPLACE));
-//				shape.getState().setLineWidth(5);
-//				treeNode.addShape(shape);
-//			}
+		}
+
+		public PlayerPacket getClosestVisiblePlayer() {
+			PlayerPacket thisPlayer = gameLogic.level.getPlayer(id);
+			Vec3 thisPos = thisPlayer.getPosition();
+			PlayerPacket closestPlayer = null;
+			float closestDist = Float.MAX_VALUE;
+			for (PlayerPacket other : gameLogic.level.players) {
+				if (other.getId() != thisPlayer.getId() && other.isConnected() && other.getHealth() > 0) {
+					Vec3 otherPosition = other.getPosition();
+					ClosestRayResultCallback result = new ClosestRayResultCallback(thisPos, otherPosition);
+					gameLogic.physicsLevel.rayTest(thisPos, otherPosition, result);
+					if (!result.hasHit() || RigidBody.upcast(result.collisionObject) == null) {
+						float dist = thisPos.distance(otherPosition);
+						if (dist < closestDist) {
+							closestPlayer = other;
+							closestDist = dist;
+						}
+					}
+				}
+			}
+
+			return closestPlayer;
 		}
 	}
 }
