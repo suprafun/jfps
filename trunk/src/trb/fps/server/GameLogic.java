@@ -13,18 +13,20 @@ import trb.fps.net.PlayerPacket;
 import trb.fps.BulletStats;
 import trb.fps.CollisionInfo;
 import trb.fps.Input;
-import trb.fps.util.LineDistance;
 import trb.fps.PlayerUpdator;
 import trb.fps.entity.SpawnPoint;
 import trb.fps.entity.Transform;
 import trb.fps.net.BulletPacket;
 import trb.fps.physics.PhysicsLevel;
+import trb.fps.util.SegmentSegmentDistance;
 import trb.jsg.util.Mat4;
 import trb.jsg.util.Vec3;
 
 public class GameLogic {
 
-    private static final float PLAYER_RADIUS = 1.5f;
+    private static final float PLAYER_RADIUS = 0.5f;
+    private static final float BULLET_RADIUS = 0.25f;
+    private static final float PLAYER_HEIGHT = 2f;
     private static final long BULLET_TIMEOUT_MILLIS = 5000;
     public static final BulletStats[] bulletStats = {
         new BulletStats(10, 50f)
@@ -90,8 +92,6 @@ public class GameLogic {
 					}
 					level.bullets.remove(bulletIdx);
 					level.setPlayer(collision.playerId, player);
-					System.out.println("bullet from " + bullet.shooterPlayerId
-							+ " collided with " + collision.playerId);
 				} else if (collision.type == CollisionInfo.Type.World) {
 					level.bullets.remove(bulletIdx);
 				}
@@ -105,8 +105,9 @@ public class GameLogic {
      * update.
      */
     private CollisionInfo collideBullet(BulletPacket bullet) {
-        Vec3 p1 = getPositionAtTime(bullet, Math.max(bullet.spawnTime, prevTime));
+        Vec3 p1 = getPositionAtTime(bullet, Math.max(bullet.spawnTime, bullet.lastServerUpdateTime));
         Vec3 p2 = getPositionAtTime(bullet, time);
+        bullet.lastServerUpdateTime = time;
         return collideBullet(bullet, p1, p2);
     }
 
@@ -115,13 +116,17 @@ public class GameLogic {
         CollisionInfo collisionInfo = null;
         for (PlayerPacket player : level.players) {
             if (player.isConnected() && player.getHealth() > 0 && player.getId() != bullet.shooterPlayerId) {
-                LineDistance distanceToPlayer = new LineDistance(player.getPosition(), p1, p2);
-                //System.out.println("bullet distance to " + player.index + " = " + distanceToPlayer.distance);
-                if (distanceToPlayer.distance < PLAYER_RADIUS) {
-                    float dist = distanceToPlayer.d.distance(p1);
+
+                Vec3 a = new Vec3(player.getBottomPosition()).add(0, PLAYER_RADIUS, 0);
+                Vec3 b = new Vec3(a).add(0, PLAYER_HEIGHT - PLAYER_RADIUS * 2, 0);
+                SegmentSegmentDistance segSegDist = new SegmentSegmentDistance();
+                float d = (float) Math.sqrt(segSegDist.calculate(p1, p2, a, b));
+                Vec3 intersection = new Vec3().interpolate_(p1, p2, segSegDist.s);
+                if (d < PLAYER_RADIUS + BULLET_RADIUS) {
+                    float dist = intersection.distance(p1);
                     if (dist < shortestDistance) {
                         shortestDistance = dist;
-                        collisionInfo = new CollisionInfo(CollisionInfo.Type.Player, distanceToPlayer.d, player.getId());
+                        collisionInfo = new CollisionInfo(CollisionInfo.Type.Player, intersection, player.getId());
                     }
                 }
             }
@@ -199,7 +204,7 @@ public class GameLogic {
 		bullet.shooterPlayerId = player.getId();
 		bullet.setStartPosition(player.getPosition().add_(BULLET_SPAWN_OFFSET));
 		bullet.setStartDirection(player.getTransform().transformAsVector(new Vec3(0, 0, -1)));
-		System.out.println("fireBullet time diff: " + (fireServerTime - time));
+		//System.out.println("fireBullet time diff: " + (fireServerTime - time));
 		bullet.spawnTime = fireServerTime;
 		level.bullets.add(bullet);
 		player.ammo--;
