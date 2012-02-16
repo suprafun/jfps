@@ -135,7 +135,8 @@ public class BotManager {
 						float heading = getHeadingRad(dir);
 						//System.out.println(startPos + " " + pos + " " + dir + " " + heading);
 
-						gameLogic.addInput(id, new Input(now, now, 0, 1, heading, 0, false, false));
+                        //gameLogic.addInput(id, new Input(now, now, 0, 1, heading, 0, false, false));
+                        gameLogic.addInput(id, new Input(now, now, 0, 0, heading, 0, false, false));
 
 						if (startPos.epsilonEquals(target, 1f)) {
 							System.out.println("Reached target " + target);

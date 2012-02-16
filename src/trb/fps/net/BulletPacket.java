@@ -16,6 +16,8 @@ public class BulletPacket {
     //public Vec3 hitPosition = new Vec3();
     //public long hitTime = 0;
 
+    public transient long lastServerUpdateTime = 0;
+
     public void setStartPosition(Vec3 p) {
         System.arraycopy(p.toFloats(), 0, startPosition, 0, 3);
     }
