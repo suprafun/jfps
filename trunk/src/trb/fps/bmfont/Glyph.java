@@ -13,9 +13,41 @@ public class Glyph {
     int xadvance;
     Map<Character, Integer> kerning;
 
+	public Glyph() {
+		
+	}
+
+	public Glyph(int srcX, int srcY, int width, int height, int xoffset, int yoffset, int xadvance) {
+		this.srcX = srcX;
+		this.srcY = srcY;
+		this.width = width;
+		this.height = height;
+		this.xoffset = xoffset;
+		this.yoffset = yoffset;
+		this.xadvance = xadvance;
+	}
+
+	public void initUV(int textureWidth, int textureHeight, boolean flipped, boolean flipImage) {
+		float invTexWidth = 1.0f / textureWidth;
+		float invTexHeight = 1.0f / textureHeight;
+		u = srcX * invTexWidth;
+		u2 = (srcX + width) * invTexWidth;
+		if (flipped) {
+			v = srcY * invTexHeight;
+			v2 = (srcY + height) * invTexHeight;
+		} else {
+			v2 = srcY * invTexHeight;
+			v = (srcY + height) * invTexHeight;
+		}
+		if (flipImage) {
+			v = 1f - v;
+			v2 = 1f - v2;
+		}
+	}
+
     int getKerning(char ch) {
         if (kerning != null) {
-            return kerning.get(ch);
+//            return kerning.get(ch);
         }
         return 0;
     }

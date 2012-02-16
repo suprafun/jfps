@@ -5,9 +5,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 public class BitmapFontData {
+
+	static final char[] xChars = {'x', 'e', 'a', 'o', 'n', 's', 'r', 'c', 'u', 'm', 'v', 'w', 'z'};
+	static final char[] capChars = {'M', 'N', 'B', 'D', 'C', 'E', 'F', 'K', 'A',
+		'G', 'H', 'I', 'J', 'L', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
     final boolean flipped;
     final float lineHeight;
@@ -15,20 +21,21 @@ public class BitmapFontData {
     float ascent;
     float descent;
     float down;
-    float scaleX = 1, scaleY = 1;
-    final Glyph[] glyphs = new Glyph[256];
+    final Map<Character, Glyph> glyphs = new HashMap();
     float spaceWidth;
     float xHeight = 1;
+	float scaleX = 1f;
+	float scaleY = 1f;
     String imageFile;
 
-    public BitmapFontData(InputStream fontFile, boolean flip) {
+    public BitmapFontData(InputStream fontFile, boolean flip, boolean flipImage) {
         this.flipped = flip;
         BufferedReader reader = new BufferedReader(new InputStreamReader(fontFile), 512);
         try {
             reader.readLine(); // info
 
             String line = reader.readLine();
-            String[] common = line.split(" ", 4);
+            String[] common = line.split(" ");
             if (!common[1].startsWith("lineHeight=")) {
                 throw new RuntimeException("Invalid font file: " + fontFile);
             }
@@ -38,6 +45,9 @@ public class BitmapFontData {
                 throw new RuntimeException("Invalid font file: " + fontFile);
             }
             int baseLine = Integer.parseInt(common[2].substring(5));
+
+			int scaleW = Integer.parseInt(common[3].substring(7));
+			int scaleH = Integer.parseInt(common[4].substring(7));
 
             line = reader.readLine();
             String[] pageLine = line.split(" ", 4);
@@ -56,38 +66,36 @@ public class BitmapFontData {
                     continue;
                 }
 
-                Glyph glyph = new Glyph();
-
                 StringTokenizer tokens = new StringTokenizer(line, " =");
                 tokens.nextToken();
                 tokens.nextToken();
                 int ch = Integer.parseInt(tokens.nextToken());
-                if (ch <= Character.MAX_VALUE) {
-                    setGlyph(ch, glyph);
-                } else {
-                    continue;
-                }
                 tokens.nextToken();
-                glyph.srcX = Integer.parseInt(tokens.nextToken());
+                int srcX = Integer.parseInt(tokens.nextToken());
                 tokens.nextToken();
-                glyph.srcY = Integer.parseInt(tokens.nextToken());
+                int srcY = Integer.parseInt(tokens.nextToken());
                 tokens.nextToken();
-                glyph.width = Integer.parseInt(tokens.nextToken());
+                int width = Integer.parseInt(tokens.nextToken());
                 tokens.nextToken();
-                glyph.height = Integer.parseInt(tokens.nextToken());
+                int height = Integer.parseInt(tokens.nextToken());
                 tokens.nextToken();
-                glyph.xoffset = Integer.parseInt(tokens.nextToken());
+                int xoffset = Integer.parseInt(tokens.nextToken());
                 tokens.nextToken();
+				int yoffset = 0;
                 if (flip) {
-                    glyph.yoffset = Integer.parseInt(tokens.nextToken());
+                    yoffset = Integer.parseInt(tokens.nextToken());
                 } else {
-                    glyph.yoffset = -(glyph.height + Integer.parseInt(tokens.nextToken()));
+                    yoffset = -(height + Integer.parseInt(tokens.nextToken()));
                 }
                 tokens.nextToken();
-                glyph.xadvance = Integer.parseInt(tokens.nextToken());
-                if (glyph.width > 0 && glyph.height > 0) {
-                    descent = Math.min(baseLine + glyph.yoffset, descent);
+                int xadvance = Integer.parseInt(tokens.nextToken());
+                if (width > 0 && height > 0) {
+                    descent = Math.min(baseLine + yoffset, descent);
                 }
+
+				Glyph glyph = new Glyph(srcX, srcY, width, height, xoffset, yoffset, xadvance);
+				glyph.initUV(scaleW, scaleH, flipped, flipImage);
+				setGlyph(ch, glyph);
             }
 
             while (true) {
@@ -127,8 +135,8 @@ public class BitmapFontData {
             spaceWidth = spaceGlyph != null ? spaceGlyph.xadvance + spaceGlyph.width : 1;
 
             Glyph xGlyph = null;
-            for (int i = 0; i < BitmapFont.xChars.length; i++) {
-                xGlyph = getGlyph(BitmapFont.xChars[i]);
+            for (int i = 0; i < xChars.length; i++) {
+                xGlyph = getGlyph(xChars[i]);
                 if (xGlyph != null) {
                     break;
                 }
@@ -139,15 +147,15 @@ public class BitmapFontData {
             xHeight = xGlyph.height;
 
             Glyph capGlyph = null;
-            for (int i = 0; i < BitmapFont.capChars.length; i++) {
-                capGlyph = getGlyph(BitmapFont.capChars[i]);
+            for (int i = 0; i < capChars.length; i++) {
+                capGlyph = getGlyph(capChars[i]);
                 if (capGlyph != null) {
                     break;
                 }
             }
             if (capGlyph == null) {
-                for (Glyph glyph : glyphs) {
-                    if (glyph == null || glyph.height == 0 || glyph.width == 0) {
+                for (Glyph glyph : glyphs.values()) {
+                    if (glyph.height == 0 || glyph.width == 0) {
                         continue;
                     }
                     capHeight = Math.max(capHeight, glyph.height);
@@ -173,12 +181,12 @@ public class BitmapFontData {
     }
 
     private void setGlyph(int ch, Glyph glyph) {
-        glyphs[ch] = glyph;
+		glyphs.put((char) ch, glyph);
     }
 
     private Glyph getFirstGlyph() {
-        for (Glyph glyph : glyphs) {
-            if (glyph == null || glyph.height == 0 || glyph.width == 0) {
+        for (Glyph glyph : glyphs.values()) {
+            if (glyph.height == 0 || glyph.width == 0) {
                 continue;
             }
             return glyph;
@@ -187,7 +195,7 @@ public class BitmapFontData {
     }
 
     public Glyph getGlyph(char ch) {
-        return (ch < glyphs.length) ? glyphs[ch] : null;
+		return glyphs.get(ch);
     }
 
     public String getImageFile() {
@@ -196,7 +204,7 @@ public class BitmapFontData {
 
     public static void main(String[] args) throws Exception {
         URL url = BitmapFontData.class.getResource("Candara-38-Bold.fnt");
-        BitmapFontData bitmapFontData = new BitmapFontData(url.openStream(), false);
+        BitmapFontData bitmapFontData = new BitmapFontData(url.openStream(), false, false);
         String str = "abcABC";
         for (int i=0; i<str.length(); i++) {
             char c = str.charAt(i);
