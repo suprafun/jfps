@@ -1,5 +1,7 @@
 package trb.trials4k;
 
+import java.awt.Point;
+
 
 
 public class Tuple {
@@ -29,6 +31,10 @@ public class Tuple {
 		this.x = x;
 		this.y = y;
 		return this;
+	}
+
+	public Point point() {
+		return new Point((int) x, (int) y);
 	}
 	
 	public float length() {

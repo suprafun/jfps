@@ -129,8 +129,9 @@ public class LevelCreator {
             mainLevel.addLevel(level, 10000, -1000);
         }
 		try {
-			FileOutputStream byteOut = new FileOutputStream(new File("src/data.bin"));
+			FileOutputStream byteOut = new FileOutputStream(new File("/vrdev/fps/data.bin"));
 			LevelIO.writeLevel(mainLevel, new DataOutputStream(byteOut));
+			byteOut.flush();
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
