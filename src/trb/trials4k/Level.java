@@ -27,6 +27,7 @@ public class Level {
 	public final List<LineArray> lineArrays = new ArrayList();
 	public final List<Circle> circles = new ArrayList();
 	public final List<Checkpoint> checkpoints = new ArrayList();
+	public final List<DeltaArray> deltaArrays = new ArrayList();
 
     public void addLevel(Level level, float xoffset, float yoffset) {
         for (LineArray lineArray : level.lineArrays) {
@@ -66,6 +67,11 @@ public class Level {
 			g.setColor(c.passed ? Color.GREEN : Color.RED);
 			g.drawLine(Math.round(c.position.x), Math.round(c.position.y),
 					Math.round(c.position.x), Math.round(c.position.y) - 100);
+		}
+		for (DeltaArray deltaArray : deltaArrays) {
+			for (Line l : deltaArray.createLines()) {
+				g.drawLine(Math.round(l.v1.x), Math.round(l.v1.y), Math.round(l.v2.x), Math.round(l.v2.y));
+			}
 		}
 	}
 
