@@ -27,7 +27,7 @@ public class Glyph {
 		this.xadvance = xadvance;
 	}
 
-	public void initUV(int textureWidth, int textureHeight, boolean flipped, boolean flipImage) {
+	public void initUV(int textureWidth, int textureHeight, boolean flipped) {
 		float invTexWidth = 1.0f / textureWidth;
 		float invTexHeight = 1.0f / textureHeight;
 		u = srcX * invTexWidth;
@@ -39,10 +39,10 @@ public class Glyph {
 			v2 = srcY * invTexHeight;
 			v = (srcY + height) * invTexHeight;
 		}
-		if (flipImage) {
-			v = 1f - v;
-			v2 = 1f - v2;
-		}
+
+        // seems like v is up side down compared to what we use
+        v = 1f - v;
+        v2 = 1f - v2;
 	}
 
     int getKerning(char ch) {

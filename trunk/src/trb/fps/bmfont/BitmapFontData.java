@@ -28,7 +28,7 @@ public class BitmapFontData {
 	float scaleY = 1f;
     String imageFile;
 
-    public BitmapFontData(InputStream fontFile, boolean flip, boolean flipImage) {
+    public BitmapFontData(InputStream fontFile, boolean flip) {
         this.flipped = flip;
         BufferedReader reader = new BufferedReader(new InputStreamReader(fontFile), 512);
         try {
@@ -94,7 +94,7 @@ public class BitmapFontData {
                 }
 
 				Glyph glyph = new Glyph(srcX, srcY, width, height, xoffset, yoffset, xadvance);
-				glyph.initUV(scaleW, scaleH, flipped, flipImage);
+				glyph.initUV(scaleW, scaleH, flipped);
 				setGlyph(ch, glyph);
             }
 
@@ -200,17 +200,5 @@ public class BitmapFontData {
 
     public String getImageFile() {
         return imageFile;
-    }
-
-    public static void main(String[] args) throws Exception {
-        URL url = BitmapFontData.class.getResource("Candara-38-Bold.fnt");
-        BitmapFontData bitmapFontData = new BitmapFontData(url.openStream(), false, false);
-        String str = "abcABC";
-        for (int i=0; i<str.length(); i++) {
-            char c = str.charAt(i);
-            Glyph glyph = bitmapFontData.getGlyph(c);
-            System.out.println(c + " = " + glyph);
-        }
-        //System.out.println(in.available());
     }
 }
