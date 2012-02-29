@@ -46,7 +46,7 @@ public class PhysicsLevel {
         character = new KinematicCharacter(this);
 
         Map<TreeNode, Box> nodeBoxMap = new HashMap();
-        TreeNode treeNode = DeferredSystem.createGeometry(entities, null, nodeBoxMap);
+        TreeNode treeNode = DeferredSystem.createGeometry(entities, null, nodeBoxMap, null);
         treeNode.updateTree(true);
         for (TreeNode child : treeNode.getChildren()) {
             Box box = nodeBoxMap.get(child);

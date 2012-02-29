@@ -18,6 +18,7 @@ import trb.fps.net.BulletPacket;
 import trb.fps.net.LevelPacket;
 import trb.fps.net.PlayerPacket;
 import trb.fps.server.GameLogic;
+import trb.fps.server.PowerupManager;
 import trb.jsg.DepthBuffer;
 import trb.jsg.RenderPass;
 import trb.jsg.SceneGraph;
@@ -157,6 +158,7 @@ public class JsgDeferredRenderer implements FpsRenderer {
 
         renderPlayers(l, localPlayerIdx);
         renderBullets(l);
+        renderPowerups(l);
 
         hud.render(level, localPlayerIdx);
 
@@ -207,6 +209,14 @@ public class JsgDeferredRenderer implements FpsRenderer {
 		for (int i=levelData.bullets.size(); i<bulletModels.size(); i++) {
 			setVisible(bulletModels.get(i), false);
 		}
+    }
+
+    private void renderPowerups(Level level) {
+        long serverTime = level.interpolatedServerState.getCurrentState().serverTime;
+        long[] pickupTimes = level.levelData.powerupsPickupTime;
+        for (int i=0; i< Math.min(pickupTimes.length, deferredSystem.powerupShapes.size()); i++) {
+            deferredSystem.powerupShapes.get(i).setVisible(serverTime > pickupTimes[i] + PowerupManager.HIDE_TIME);
+        }
     }
 
 	public static void setVisible(TreeNode node, boolean b) {
