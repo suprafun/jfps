@@ -546,11 +546,11 @@ public class BitmapFont {
 
 	public static void main(String[] args) throws Exception {
 		BufferedImage image = ImageIO.read(BitmapFont.class.getResource("Candara-38-Bold.png"));
-
 		URL url = BitmapFontData.class.getResource("Candara-38-Bold.fnt");
-		BitmapFontData bitmapFontData = new BitmapFontData(url.openStream(), true, true);
+		BitmapFontData bitmapFontData = new BitmapFontData(url.openStream(), true);
 		BitmapFont font = new BitmapFont(bitmapFontData, true);
-		font.draw("Hello world, This is a test!!!", 100, 100);
+		//font.draw("Hello world, This is a test!!!", 100, 100);
+        font.drawMultiLine("Hello world\nthis is a\ntest!!!", 100, 100);
 		VertexData vertexData = font.createVertexData();
 
 		Display.setDisplayMode(new DisplayMode(640, 480));
