@@ -49,7 +49,7 @@ public class BotManager {
 
 	public void levelChanged(ChangeLevelPacket changeLevelPacket) {
 		Map<Box, TreeNode> boxNodeMap = new HashMap();
-		DeferredSystem.createGeometry(gameLogic.entityList, boxNodeMap, null);
+		DeferredSystem.createGeometry(gameLogic.entityList, boxNodeMap, null, null);
 		NavigationMeshEditorUser creator = new NavigationMeshEditorUser(boxNodeMap);
 		triangleMesh = creator.create(parameters.create());
 		navigator = NavUtil.getNavigator(triangleMesh.vertices, triangleMesh.indices,
@@ -106,48 +106,57 @@ public class BotManager {
 					gameLogic.addInput(id, new Input(now, now, 0, 0, headingRad, tiltRad, true, false));
 				} else {
 					if (path == null && navigator != null) {
-						List<Powerup> powerups = gameLogic.entityList.getComponents(Powerup.class);
-						if (powerups.size() > 0) {
-							Powerup powerup = powerups.get((int) (Math.random() * powerups.size()));
-							target = powerup.getComponent(Transform.class).get().getTranslation();
-						}
-						path = findPath(player.getBottomPosition(), target);
+                        findPathToRandomPowerup(player);
 					}
 
 					if (path != null) {
-						Vec3 startPos = player.getBottomPosition();
-						Vec3 pos = new Vec3(startPos);
-						int maxIter = 10;
-						while (!pos.epsilonEquals(target, 0.5f) && pos.epsilonEquals(startPos, 0.5f) && maxIter-- > 0) {
-							//System.out.println("   "+pos);
-							Vector3 nextPos = new Vector3();
-							if (!path.getTarget(pos.x, pos.y, pos.z, nextPos)) {
-								MasterNavRequest<Path>.NavRequest pathRequest = navigator.navigator().getPath(
-										startPos.x, startPos.y, startPos.z, target.x, target.y, target.z);
-								navigator.processAll(true);
-								path = pathRequest.data();
-								System.out.println("getTarget failed " + path);
-								break;
-							}
-							pos.set(nextPos.x, nextPos.y, nextPos.z);
-						}
-						Vec3 dir = new Vec3(pos).sub_(startPos);
-						float heading = getHeadingRad(dir);
-						//System.out.println(startPos + " " + pos + " " + dir + " " + heading);
-
-                        //gameLogic.addInput(id, new Input(now, now, 0, 1, heading, 0, false, false));
-                        gameLogic.addInput(id, new Input(now, now, 0, 0, heading, 0, false, false));
-
-						if (startPos.epsilonEquals(target, 1f)) {
-							System.out.println("Reached target " + target);
-							path = null;
-						}
+                        followPath(player);
 					} else {
 						gameLogic.addInput(id, new Input(now, now, 0, 0, 0, 0, false, false));
 					}
 				}
 			}
 		}
+
+        private void findPathToRandomPowerup(PlayerPacket player) {
+            List<Powerup> powerups = gameLogic.entityList.getComponents(Powerup.class);
+            if (powerups.size() > 0) {
+                Powerup powerup = powerups.get((int) (Math.random() * powerups.size()));
+                target = powerup.getComponent(Transform.class).get().getTranslation();
+            }
+            path = findPath(player.getBottomPosition(), target);
+        }
+
+        private void followPath(PlayerPacket player) {
+            Vec3 startPos = player.getBottomPosition();
+            Vec3 pos = new Vec3(startPos);
+            int maxIter = 10;
+            while (!pos.epsilonEquals(target, 0.5f) && pos.epsilonEquals(startPos, 0.5f) && maxIter-- > 0) {
+                //System.out.println("   "+pos);
+                Vector3 nextPos = new Vector3();
+                if (!path.getTarget(pos.x, pos.y, pos.z, nextPos)) {
+                    MasterNavRequest<Path>.NavRequest pathRequest = navigator.navigator().getPath(
+                            startPos.x, startPos.y, startPos.z, target.x, target.y, target.z);
+                    navigator.processAll(true);
+                    path = pathRequest.data();
+                    System.out.println("getTarget failed " + path);
+                    break;
+                }
+                pos.set(nextPos.x, nextPos.y, nextPos.z);
+            }
+            Vec3 dir = new Vec3(pos).sub_(startPos);
+            float heading = getHeadingRad(dir);
+            //System.out.println(startPos + " " + pos + " " + dir + " " + heading);
+
+            long now = gameLogic.time;
+            gameLogic.addInput(id, new Input(now, now, 0, 1, heading, 0, false, false));
+            //gameLogic.addInput(id, new Input(now, now, 0, 0, heading, 0, false, false));
+
+            if (startPos.epsilonEquals(target, 1f)) {
+                System.out.println("Reached target " + target);
+                path = null;
+            }
+        }
 
 		private float getHeadingRad(Vec3 dir) {
 			return (float) Math.atan2(-dir.x, -dir.z);

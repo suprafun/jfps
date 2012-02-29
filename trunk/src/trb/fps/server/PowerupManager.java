@@ -1,36 +1,24 @@
 package trb.fps.server;
 
-import trb.fps.entity.EntityList;
 import trb.fps.entity.Powerup;
 import trb.fps.entity.Transform;
 import trb.fps.net.PlayerPacket;
-import trb.fps.util.TwoWayMap;
 import trb.jsg.util.Vec3;
 
 public class PowerupManager {
 
-	private final TwoWayMap<Powerup, Integer> powerupIndexes = new TwoWayMap();
+    public static final long HIDE_TIME = 5000;
 
-	public PowerupManager(EntityList entityList) {
-		int idx = 0;
-		for (Powerup powerup : entityList.getComponents(Powerup.class)) {
-			powerupIndexes.add(powerup, idx++);
-		}
-		System.out.println("PowerupManager " + size());
-	}
+	public final PowerupMap powerupMap;
 
-	public int size() {
-		return powerupIndexes.size();
-	}
-
-	public Powerup getPowerup(int i) {
-		return powerupIndexes.getBackward(i);
+	public PowerupManager(PowerupMap powerupMap) {
+        this.powerupMap = powerupMap;
 	}
 
 	public PlayerPacket pickup(PlayerPacket player, long[] powerupsPickupTime, long time) {
 		for (int i = 0; i < powerupsPickupTime.length; i++) {
-			Powerup powerup = getPowerup(i);
-			if (powerupsPickupTime[i] < time - 5000) {
+			Powerup powerup = powerupMap.getPowerup(i);
+			if (powerupsPickupTime[i] < time - HIDE_TIME) {
 				Vec3 powerupPos = powerup.getComponent(Transform.class).get().getTranslation();
 				float distance = powerupPos.distance(player.getPosition());
 				if (distance < 2) {

@@ -39,7 +39,7 @@ public class GameLogic {
 
     EntityList entityList = new EntityList();
     PhysicsLevel physicsLevel = new PhysicsLevel(entityList);
-	private PowerupManager powerupManager = new PowerupManager(entityList);
+	private PowerupManager powerupManager = new PowerupManager(new PowerupMap(entityList));
     public final LevelPacket level = new LevelPacket();
     private final Map<Integer, Player> players = new HashMap();
     
@@ -256,8 +256,8 @@ public class GameLogic {
         System.out.println("changeLevel "+entityList.getAll().size());
         this.entityList = entityList;
         physicsLevel = new PhysicsLevel(entityList);
-		powerupManager = new PowerupManager(entityList);
-		level.powerupsPickupTime = new long[powerupManager.size()];
+		powerupManager = new PowerupManager(new PowerupMap(entityList));
+		level.powerupsPickupTime = new long[powerupManager.powerupMap.size()];
 		restart();
     }
 

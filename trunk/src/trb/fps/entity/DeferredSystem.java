@@ -1,5 +1,6 @@
 package trb.fps.entity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ public class DeferredSystem {
     private Map<PointLightComp, PointLight> pointLightMap = new HashMap();
     private Map<HemisphereLightComp, HemisphereLight> hemisphereLightMap = new HashMap();
     public final Map<Box, TreeNode> boxNodeMap = new HashMap();
+    public List<Shape> powerupShapes = new ArrayList();
     private long updateChange;
 
     public DeferredSystem(JsgDeferredRenderer renderer) {
@@ -103,11 +105,13 @@ public class DeferredSystem {
             replaceableNode.removeChild(child);
         }
         boxNodeMap.clear();
-        replaceableNode = createGeometry(entities, boxNodeMap, null);
+        powerupShapes.clear();
+        replaceableNode = createGeometry(entities, boxNodeMap, null, powerupShapes);
         renderer.basePass.getRootNode().addChild(replaceableNode);
     }
 
-    public static TreeNode createGeometry(EntityList entities, Map<Box, TreeNode> boxNodeMap, Map<TreeNode, Box> nodeBoxMap) {
+    public static TreeNode createGeometry(EntityList entities, Map<Box, TreeNode> boxNodeMap
+            , Map<TreeNode, Box> nodeBoxMap, List<Shape> powerupShapes) {
         TreeNode replaceableNode = new TreeNode();
         for (Box box : entities.getComponents(Box.class)) {
             Shape shape = new Shape();
@@ -130,6 +134,12 @@ public class DeferredSystem {
             }
             if (nodeBoxMap != null) {
                 nodeBoxMap.put(node, box);
+            }
+
+            if (powerupShapes != null) {
+                if (box.getEntity().getComponent(Powerup.class) != null) {
+                    powerupShapes.add(shape);
+                }
             }
         }
         return replaceableNode;
